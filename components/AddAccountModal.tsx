@@ -62,7 +62,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Add Account</h2>
+          <h2 className="text-xl font-bold text-cream-900">Add Account</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-2xl"
