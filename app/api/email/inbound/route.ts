@@ -269,7 +269,7 @@ export async function POST(request: Request) {
       console.log('Email ID:', email_id)
       try {
         // Try inbound-specific endpoint
-        const resendResponse = await fetch(`https://api.resend.com/inbound/${email_id}`, {
+        const resendResponse = await fetch(`https://api.resend.com/emails/receiving/${email_id}`, {
           headers: {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
           },
