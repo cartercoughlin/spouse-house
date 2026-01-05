@@ -76,7 +76,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
               placeholder="e.g., Pacific Gas & Electric"
             />
           </div>
@@ -87,7 +87,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
               placeholder="https://..."
             />
           </div>
@@ -97,7 +97,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="banking">Banking</option>
               <option value="utility">Utility</option>
@@ -124,7 +124,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
               rows={3}
               placeholder="Additional information..."
             />
@@ -134,14 +134,14 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 disabled:opacity-50"
             >
               {loading ? 'Adding...' : 'Add Account'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border py-2 rounded-lg hover:bg-gray-50"
+              className="flex-1 border border-amber-300 py-2 rounded-lg hover:bg-amber-50"
             >
               Cancel
             </button>

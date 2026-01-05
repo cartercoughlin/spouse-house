@@ -72,15 +72,15 @@ export default function AccountCard({ account }: AccountCardProps) {
   }
 
   const categoryColors: Record<string, string> = {
-    banking: 'bg-green-100 text-green-800',
-    utility: 'bg-blue-100 text-blue-800',
-    subscription: 'bg-purple-100 text-purple-800',
-    insurance: 'bg-yellow-100 text-yellow-800',
-    other: 'bg-gray-100 text-gray-800',
+    banking: 'bg-emerald-100 text-emerald-800',
+    utility: 'bg-sky-100 text-sky-800',
+    subscription: 'bg-violet-100 text-violet-800',
+    insurance: 'bg-amber-100 text-amber-800',
+    other: 'bg-stone-100 text-stone-800',
   }
 
   return (
-    <div className="bg-white border rounded-lg p-4">
+    <div className="bg-white border border-amber-200 rounded-lg p-4 shadow-sm">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -102,12 +102,12 @@ export default function AccountCard({ account }: AccountCardProps) {
               </span>
             )}
             {account.autopay && (
-              <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-800">
+              <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800">
                 Autopay
               </span>
             )}
             {account.due_date && (
-              <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">
+              <span className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700">
                 Due: {account.due_date}th
               </span>
             )}
@@ -116,7 +116,7 @@ export default function AccountCard({ account }: AccountCardProps) {
 
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-gray-400 hover:text-gray-600 ml-2"
+          className="text-amber-400 hover:text-amber-600 ml-2"
         >
           {isExpanded ? '−' : '+'}
         </button>
@@ -178,7 +178,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+                  className="bg-amber-600 text-white px-4 py-2 rounded text-sm hover:bg-amber-700"
                 >
                   Save
                 </button>
@@ -187,7 +187,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                     setIsEditing(false)
                     setEditedAccount(account)
                   }}
-                  className="border px-4 py-2 rounded text-sm hover:bg-gray-50"
+                  className="border border-amber-300 px-4 py-2 rounded text-sm hover:bg-amber-50"
                 >
                   Cancel
                 </button>
@@ -202,7 +202,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                     href={account.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
+                    className="text-sm text-amber-700 hover:underline break-all"
                   >
                     {account.url}
                   </a>
@@ -225,12 +225,12 @@ export default function AccountCard({ account }: AccountCardProps) {
 
               {account.emails && account.emails.length > 0 && (
                 <div>
-                  <div className="text-xs text-gray-600 mb-2">Recent Emails ({account.emails.length})</div>
+                  <div className="text-xs text-amber-700 mb-2">Recent Emails ({account.emails.length})</div>
                   <div className="space-y-2">
                     {account.emails.slice(0, 3).map((email) => (
-                      <div key={email.id} className="text-sm bg-gray-50 p-2 rounded">
+                      <div key={email.id} className="text-sm bg-amber-50 p-2 rounded border border-amber-200">
                         <div className="font-medium">{email.subject}</div>
-                        <div className="text-xs text-gray-600 flex justify-between mt-1">
+                        <div className="text-xs text-amber-700 flex justify-between mt-1">
                           <span>{new Date(email.received_at).toLocaleDateString()}</span>
                           {email.amount && <span className="font-medium">${email.amount}</span>}
                         </div>
@@ -243,13 +243,13 @@ export default function AccountCard({ account }: AccountCardProps) {
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  className="text-sm text-amber-700 hover:text-amber-900 font-medium"
                 >
                   Edit
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="text-sm text-red-600 hover:text-red-800"
+                  className="text-sm text-red-700 hover:text-red-900 font-medium"
                 >
                   Delete
                 </button>
