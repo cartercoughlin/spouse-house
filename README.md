@@ -4,6 +4,7 @@ A simple app to manage and sync all your bills, accounts, and subscriptions in o
 
 ## Features
 
+### Core Functionality
 - Add accounts manually or via email forwarding
 - **Intelligent email parsing** that extracts service names, categories, autopay status, and URLs
 - **Forwarded email detection** - correctly identifies original senders from me.com, gmail.com, etc.
@@ -11,8 +12,21 @@ A simple app to manage and sync all your bills, accounts, and subscriptions in o
 - Categorize accounts (banking, utility, subscription, insurance)
 - Track autopay status and billing cycles
 - Store related emails for each account with clickable viewer
-- Simple, mobile-responsive UI with warm neutral color palette
 - Shared access for households - all authenticated users can view all accounts
+
+### User Experience
+- **Custom emoji icons** - set any emoji as your account icon with native OS emoji picker support
+- **HTML email rendering** - view emails in their original formatted HTML
+- **Clickable account cards** - click anywhere on a card to expand and view details
+- **Instant updates** - all changes immediately refresh the page to show updated content
+- Simple, mobile-responsive UI with warm neutral color palette
+
+### Progressive Web App (PWA)
+- **Add to Home Screen** - install as a native-like app on iOS and Android
+- **Automatic silent updates** - app automatically updates in the background without user intervention
+- **Offline support** - cached content available when offline
+- **Update checks every 60 seconds** - ensures you always have the latest features and fixes
+- Proper app icons and metadata for seamless installation
 
 ## Tech Stack
 
@@ -20,6 +34,8 @@ A simple app to manage and sync all your bills, accounts, and subscriptions in o
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
 - **Email**: Resend (inbound email parsing)
+- **PWA**: Service Worker for offline support and automatic updates
+- **Deployment**: Vercel
 
 ## Setup Instructions
 
@@ -87,13 +103,46 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 **Important**: Ensure environment variables are properly configured in Vercel before deployment to avoid prerendering errors.
 
+### 7. Run Database Migration (for emoji support)
+
+If you're upgrading from a previous version, run this SQL in your Supabase SQL Editor:
+
+```sql
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS emoji text;
+```
+
+## PWA Installation
+
+### iOS (iPhone/iPad)
+1. Open the app in Safari
+2. Tap the Share button (square with arrow pointing up)
+3. Scroll down and tap "Add to Home Screen"
+4. Tap "Add" in the top right
+5. The app will now appear on your home screen like a native app
+
+### Android
+1. Open the app in Chrome
+2. Tap the three dots menu
+3. Tap "Add to Home Screen" or "Install App"
+4. Tap "Add" or "Install"
+5. The app will appear in your app drawer
+
+### Automatic Updates
+- The app checks for updates every 60 seconds while running
+- When a new version is deployed, it automatically downloads in the background
+- Once downloaded, the app silently activates the update and reloads the page
+- No manual refresh or "update available" prompts - always get the latest version automatically
+- Works seamlessly whether you're using the browser or installed PWA version
+
 ## Usage
 
 ### Adding Accounts Manually
 
 1. Click "Add Account" on the dashboard
 2. Fill in the account details
-3. Click "Add Account" to save
+3. **Set a custom emoji icon** by clicking the icon button (press ⌘⌃Space on Mac to open emoji picker)
+4. Click "Add Account" to save
+5. The page will automatically refresh to show your new account
 
 ### Adding Accounts via Email
 
@@ -110,10 +159,12 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ### Managing Accounts
 
-- Click the `+` button on any account card to expand details
-- Click "Edit" to update account information
+- **Click anywhere on an account card** to expand and view details
+- **View emails in HTML** - see formatted email content with proper styling
+- Click "Edit" to update account information (including changing the emoji icon)
 - Click "Delete" to remove an account
 - Use the search bar to find accounts by name, category, or notes
+- All changes automatically refresh the page to show updated content
 
 ### Setting Up Gmail Auto-Forward
 
@@ -128,13 +179,15 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ### Accounts Table
 - Basic info: name, URL, category
+- Custom emoji icon (optional)
 - Email domain for auto-matching
 - Billing info: autopay, cycle, due date
 - Notes for additional context
 
 ### Emails Table
 - Linked to accounts
-- Stores email content and metadata
+- Stores email content in HTML format for rich display
+- Metadata including sender, subject, and received date
 - Extracts bill amounts and due dates
 
 ## Authentication
