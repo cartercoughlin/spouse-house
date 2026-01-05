@@ -40,32 +40,49 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
 }
 
 function extractURLFromEmail(emailBody: string, emailDomain: string): string | null {
-  // Look for login URLs or account URLs
-  const urlPatterns = [
-    /https?:\/\/(?:www\.|login\.|account\.|my\.)?([a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+)(?:\/[^\s<>"]*)?/gi,
-  ]
-
+  // Look for any URLs in the email
+  const urlPattern = /https?:\/\/[^\s<>"]+/gi
   const urls: string[] = []
-  for (const pattern of urlPatterns) {
-    const matches = emailBody.matchAll(pattern)
-    for (const match of matches) {
-      if (match[0]) {
-        urls.push(match[0])
-      }
+
+  const matches = emailBody.matchAll(urlPattern)
+  for (const match of matches) {
+    if (match[0]) {
+      // Clean up URLs that might have trailing punctuation
+      let url = match[0].replace(/[.,;:!?)]+$/, '')
+      urls.push(url)
     }
   }
 
-  // Prefer URLs that match the email domain
-  const domainBase = emailDomain.split('.').slice(-2).join('.')
-  const matchingUrl = urls.find(url => url.includes(domainBase))
-  if (matchingUrl) return matchingUrl
+  if (urls.length === 0) return null
 
-  // Prefer login/account URLs
-  const loginUrl = urls.find(url => url.match(/login|account|signin|my\./i))
-  if (loginUrl) return loginUrl
+  // Get the base domain (e.g., "statefarm" from "statefarm.com")
+  const domainBase = emailDomain.split('.').slice(-2, -1)[0] || emailDomain.split('.')[0]
 
-  // Return first URL from the company domain
-  return urls[0] || null
+  console.log('Found URLs:', urls)
+  console.log('Looking for domain:', domainBase)
+
+  // First, try to find URLs that match the company domain
+  const matchingUrls = urls.filter(url => {
+    const urlLower = url.toLowerCase()
+    return urlLower.includes(domainBase.toLowerCase())
+  })
+
+  if (matchingUrls.length > 0) {
+    // Prefer login/account URLs from matching domain
+    const loginUrl = matchingUrls.find(url => url.match(/login|account|signin|portal|my\./i))
+    if (loginUrl) {
+      console.log('Found login URL:', loginUrl)
+      return loginUrl
+    }
+
+    // Otherwise return first URL from matching domain
+    console.log('Using first matching URL:', matchingUrls[0])
+    return matchingUrls[0]
+  }
+
+  // If no domain match, return first URL
+  console.log('Using first URL found:', urls[0])
+  return urls[0]
 }
 
 function extractServiceName(subject: string, fromAddress: string, emailDomain: string): string {
@@ -155,12 +172,27 @@ export async function POST(request: Request) {
       text,
       html_body,
       text_body,
+      raw,
     } = emailData
 
     const fromAddress = from?.email || from
-    const emailHtml = html || html_body
-    const emailText = text || text_body
-    const emailBody = emailText || emailHtml || 'No content'
+
+    // Try multiple possible field names for email content
+    const emailHtml = html || html_body || emailData.htmlBody
+    const emailText = text || text_body || emailData.textBody || emailData.plain
+
+    // If we have raw email, that's the full content
+    let emailBody = ''
+    if (raw) {
+      emailBody = raw
+    } else if (emailText) {
+      emailBody = emailText
+    } else if (emailHtml) {
+      // Strip HTML tags for storage
+      emailBody = emailHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    } else {
+      emailBody = 'No content available - Resend may not be configured to send email body in webhooks'
+    }
 
     // Extract original sender (handles forwarded emails)
     const originalSender = extractOriginalSender(subject || '', emailBody, fromAddress)
@@ -170,7 +202,10 @@ export async function POST(request: Request) {
       fromAddress,
       originalSender,
       emailDomain,
-      subject: subject?.substring(0, 50)
+      subject: subject?.substring(0, 50),
+      hasHtml: !!emailHtml,
+      hasText: !!emailText,
+      bodyLength: emailBody.length
     })
 
     // Extract intelligent data from email
@@ -308,7 +343,9 @@ export async function POST(request: Request) {
     const amountMatch = emailBody?.match(/\$[\d,]+\.?\d*/)?.[0]
     const amount = amountMatch ? parseFloat(amountMatch.replace(/[$,]/g, '')) : null
 
-    // Store the email
+    // Store the email with cleaned body
+    console.log('Storing email with body length:', emailBody.length)
+
     const { error: emailError } = await supabase
       .from('emails')
       .insert({
