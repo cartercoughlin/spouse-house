@@ -37,9 +37,9 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleSignOut = async () => {
+    const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()

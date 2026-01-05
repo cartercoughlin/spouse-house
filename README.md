@@ -76,8 +76,14 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 1. Push your code to GitHub
 2. Go to [vercel.com](https://vercel.com) and import your repository
-3. Add the environment variables in Vercel project settings
+3. Add the environment variables in Vercel project settings:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `RESEND_API_KEY`
 4. Deploy!
+
+**Important**: Ensure environment variables are properly configured in Vercel before deployment to avoid prerendering errors.
 
 ## Usage
 

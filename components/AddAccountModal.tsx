@@ -17,11 +17,12 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+
+    const supabase = createClient()
 
     try {
       const { data: { user } } = await supabase.auth.getUser()

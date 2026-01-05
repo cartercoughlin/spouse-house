@@ -34,11 +34,11 @@ export default function AccountCard({ account }: AccountCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedAccount, setEditedAccount] = useState(account)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this account?')) return
 
+    const supabase = createClient()
     const { error } = await supabase
       .from('accounts')
       .delete()
@@ -50,6 +50,7 @@ export default function AccountCard({ account }: AccountCardProps) {
   }
 
   const handleSave = async () => {
+    const supabase = createClient()
     const { error } = await supabase
       .from('accounts')
       .update({
