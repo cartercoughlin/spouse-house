@@ -23,27 +23,41 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
 
   // If this looks like a forwarded email, try to extract the original sender
   if (isForwardingDomain || isForwardedSubject) {
-    // Try multiple patterns to find email addresses in the body
-    const emailPatterns = [
-      // "From: Name <email@domain.com>" or "From: email@domain.com"
-      /From:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im,
-      // "Reply-To: email@domain.com"
-      /Reply-To:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im,
-      // Any email address that's NOT the forwarding address
-      /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/gi,
-    ]
+    // Try to find "From:" header
+    const fromPattern = /From:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im
+    const fromMatch = emailBody.match(fromPattern)
+    if (fromMatch && fromMatch[1]) {
+      const foundEmail = fromMatch[1].toLowerCase()
+      if (foundEmail !== fromAddress.toLowerCase() &&
+          !forwardingDomains.some(d => foundEmail.includes(d))) {
+        console.log('Found original sender from "From:" header:', foundEmail)
+        return foundEmail
+      }
+    }
 
-    for (const pattern of emailPatterns) {
-      const matches = emailBody.matchAll(pattern)
-      for (const match of matches) {
-        if (match[1]) {
-          const foundEmail = match[1].toLowerCase()
-          // Skip if it's the same as the forwarding address or another known forwarding domain
-          if (foundEmail !== fromAddress.toLowerCase() &&
-              !forwardingDomains.some(d => foundEmail.includes(d))) {
-            console.log('Found original sender:', foundEmail)
-            return foundEmail
-          }
+    // Try to find "Reply-To:" header
+    const replyToPattern = /Reply-To:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im
+    const replyToMatch = emailBody.match(replyToPattern)
+    if (replyToMatch && replyToMatch[1]) {
+      const foundEmail = replyToMatch[1].toLowerCase()
+      if (foundEmail !== fromAddress.toLowerCase() &&
+          !forwardingDomains.some(d => foundEmail.includes(d))) {
+        console.log('Found original sender from "Reply-To:" header:', foundEmail)
+        return foundEmail
+      }
+    }
+
+    // Look for any email addresses in the body
+    const emailPattern = /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/gi
+    const matches = emailBody.matchAll(emailPattern)
+    for (const match of matches) {
+      if (match[1]) {
+        const foundEmail = match[1].toLowerCase()
+        // Skip if it's the same as the forwarding address or another known forwarding domain
+        if (foundEmail !== fromAddress.toLowerCase() &&
+            !forwardingDomains.some(d => foundEmail.includes(d))) {
+          console.log('Found original sender from email body:', foundEmail)
+          return foundEmail
         }
       }
     }

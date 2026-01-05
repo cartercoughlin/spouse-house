@@ -5,12 +5,14 @@ A simple app to manage and sync all your bills, accounts, and subscriptions in o
 ## Features
 
 - Add accounts manually or via email forwarding
+- **Intelligent email parsing** that extracts service names, categories, autopay status, and URLs
+- **Forwarded email detection** - correctly identifies original senders from me.com, gmail.com, etc.
 - Search through all accounts
 - Categorize accounts (banking, utility, subscription, insurance)
 - Track autopay status and billing cycles
-- Store related emails for each account
-- Simple, mobile-responsive UI
-- Shared access for couples
+- Store related emails for each account with clickable viewer
+- Simple, mobile-responsive UI with warm neutral color palette
+- Shared access for households - all authenticated users can view all accounts
 
 ## Tech Stack
 
@@ -97,10 +99,14 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 1. Forward any bill or account email to `bills@yourdomain.com`
 2. The app will automatically:
-   - Extract the sender's email domain
-   - Create a new account (or match to existing)
-   - Store the email content
-   - Parse bill amount if found
+   - **Extract the original sender** from forwarded emails (works with me.com, icloud.com, gmail.com, etc.)
+   - **Detect service name** from subject line or domain
+   - **Categorize accounts** (banking, insurance, utility, subscription) using intelligent keyword matching
+   - **Detect autopay status** by analyzing email content
+   - **Extract URLs** from email body (prioritizes login/account pages)
+   - **Parse bill amounts** from email content
+   - **Match to existing accounts** or create new ones
+   - **Progressively update accounts** with new information from subsequent emails
 
 ### Managing Accounts
 
@@ -133,9 +139,9 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## Authentication
 
-The app uses Supabase Auth with email/password authentication. Both you and your spouse can create accounts and access the same data (as long as you use the same Supabase project).
+The app uses Supabase Auth with email/password authentication. All authenticated users can view and manage all accounts - perfect for household sharing. Both you and your spouse can create accounts and access the same data using the same Supabase project.
 
-To share accounts between users, you would need to modify the Row Level Security policies to allow sharing based on a "household" or "partner" relationship.
+Row Level Security policies are configured to allow all authenticated users to access all accounts and emails.
 
 ## Future Enhancements
 
@@ -143,6 +149,7 @@ To share accounts between users, you would need to modify the Row Level Security
 - iCloud Keychain integration
 - Plaid integration for financial accounts
 - Due date reminders/notifications
-- AI-powered email parsing (GPT-4)
-- Spending analytics
-- Multi-user household management
+- Enhanced AI-powered email parsing with GPT-4 for complex scenarios
+- Spending analytics and trends
+- Bill payment tracking (paid vs unpaid)
+- Recurring bill predictions

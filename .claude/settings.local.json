@@ -5,7 +5,10 @@
       "Bash(npx create-next-app@latest spouse-house-temp --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --use-npm --eslint)",
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nImprove forwarded email extraction and category detection\n\n- Enhanced extractOriginalSender\\(\\) to automatically detect forwarding domains \\(me.com, icloud.com, gmail.com\\)\n- Added multiple fallback strategies: extract emails from body, match company patterns, find domains in URLs\n- Added Betterment and other financial companies to company patterns\n- Improved detectCategory\\(\\) to include investment services and more banks/utilities\n- Added extensive logging for debugging forwarded email issues\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)"
     ]
   }
 }
