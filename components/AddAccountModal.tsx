@@ -76,7 +76,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
+              className="w-full text-cream-900 border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
               placeholder="e.g., Pacific Gas & Electric"
             />
           </div>
@@ -87,7 +87,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
+              className="w-full text-cream-900 border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
               placeholder="https://..."
             />
           </div>
@@ -97,7 +97,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500"
+              className="w-full text-cream-900 border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500"
             >
               <option value="banking">Banking</option>
               <option value="utility">Utility</option>
@@ -124,7 +124,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
+              className="w-full text-cream-900 border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
               rows={3}
               placeholder="Additional information..."
             />

@@ -8,6 +8,7 @@ interface Email {
   id: string
   subject: string
   from_address: string
+  body: string | null
   amount: number | null
   received_at: string
 }
@@ -34,6 +35,7 @@ export default function AccountCard({ account }: AccountCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editedAccount, setEditedAccount] = useState(account)
+  const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const router = useRouter()
 
   const handleDelete = async () => {
@@ -90,7 +92,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               type="text"
               value={editedAccount.name}
               onChange={(e) => setEditedAccount({ ...editedAccount, name: e.target.value })}
-              className="font-semibold text-lg border border-peach-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-500"
+              className="font-semibold text-lg text-cream-900 border border-peach-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-500"
             />
           ) : (
             <div className="flex items-center gap-2">
@@ -105,7 +107,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                   }}
                 />
               )}
-              <h3 className="font-semibold text-lg">{account.name}</h3>
+              <h3 className="font-semibold text-lg text-cream-900">{account.name}</h3>
             </div>
           )}
 
@@ -147,7 +149,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                   type="url"
                   value={editedAccount.url || ''}
                   onChange={(e) => setEditedAccount({ ...editedAccount, url: e.target.value })}
-                  className="w-full border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
+                  className="w-full text-cream-900 border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
                   placeholder="https://..."
                 />
               </div>
@@ -157,7 +159,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                 <select
                   value={editedAccount.category || 'other'}
                   onChange={(e) => setEditedAccount({ ...editedAccount, category: e.target.value })}
-                  className="w-full border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
+                  className="w-full text-cream-900 border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
                 >
                   <option value="banking">Banking</option>
                   <option value="utility">Utility</option>
@@ -184,7 +186,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                 <textarea
                   value={editedAccount.notes || ''}
                   onChange={(e) => setEditedAccount({ ...editedAccount, notes: e.target.value })}
-                  className="w-full border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
+                  className="w-full text-cream-900 border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
                   rows={3}
                 />
               </div>
@@ -244,10 +246,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                     {account.emails.slice(0, 3).map((email) => (
                       <button
                         key={email.id}
-                        onClick={() => {
-                          // TODO: Open email modal/page
-                          alert(`Email ID: ${email.id}\n\nThis will open the full email content.\n\nSubject: ${email.subject}\nFrom: ${email.from_address || 'Unknown'}\nReceived: ${new Date(email.received_at).toLocaleDateString()}`)
-                        }}
+                        onClick={() => setSelectedEmail(email)}
                         className="w-full text-left text-sm bg-sky-50 p-2 rounded border border-sky-200 hover:bg-sky-100 transition-colors"
                       >
                         <div className="font-medium text-cream-900">{email.subject}</div>
@@ -277,6 +276,55 @@ export default function AccountCard({ account }: AccountCardProps) {
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* Email Viewer Modal */}
+      {selectedEmail && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setSelectedEmail(null)}>
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-peach-200 p-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-cream-900">Email Details</h2>
+              <button
+                onClick={() => setSelectedEmail(null)}
+                className="text-cream-600 hover:text-cream-900 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <div className="text-xs font-medium text-cream-800 mb-1">Subject</div>
+                <div className="text-lg font-semibold text-cream-900">{selectedEmail.subject}</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs font-medium text-cream-800 mb-1">From</div>
+                  <div className="text-sm text-cream-900">{selectedEmail.from_address}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-cream-800 mb-1">Received</div>
+                  <div className="text-sm text-cream-900">{new Date(selectedEmail.received_at).toLocaleString()}</div>
+                </div>
+              </div>
+
+              {selectedEmail.amount && (
+                <div>
+                  <div className="text-xs font-medium text-cream-800 mb-1">Amount</div>
+                  <div className="text-2xl font-bold text-sage-700">${selectedEmail.amount.toFixed(2)}</div>
+                </div>
+              )}
+
+              <div>
+                <div className="text-xs font-medium text-cream-800 mb-2">Email Content</div>
+                <div className="bg-cream-50 border border-cream-200 rounded-lg p-4 text-sm text-cream-900 whitespace-pre-wrap max-h-96 overflow-auto">
+                  {selectedEmail.body || 'No content available'}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -166,6 +166,13 @@ export async function POST(request: Request) {
     const originalSender = extractOriginalSender(subject || '', emailBody, fromAddress)
     const emailDomain = extractDomain(originalSender)
 
+    console.log('Email processing:', {
+      fromAddress,
+      originalSender,
+      emailDomain,
+      subject: subject?.substring(0, 50)
+    })
+
     // Extract intelligent data from email
     const serviceName = extractServiceName(subject || '', originalSender, emailDomain)
     const category = detectCategory(serviceName, emailBody, emailDomain)
@@ -196,12 +203,26 @@ export async function POST(request: Request) {
       }
     }
 
-    // Try to find matching account by email domain
-    const { data: accounts } = await supabase
+    // Try to find matching account by email domain OR by service name
+    let { data: accounts } = await supabase
       .from('accounts')
       .select('*')
       .eq('email_domain', emailDomain)
       .limit(1)
+
+    // If no match by domain, try matching by name (for accounts created with forwarding addresses)
+    if (!accounts || accounts.length === 0) {
+      const { data: nameMatches } = await supabase
+        .from('accounts')
+        .select('*')
+        .ilike('name', `%${serviceName}%`)
+        .limit(1)
+
+      if (nameMatches && nameMatches.length > 0) {
+        accounts = nameMatches
+        console.log(`Matched account by name: ${serviceName}`)
+      }
+    }
 
     let accountId: string | null = null
 
@@ -211,6 +232,15 @@ export async function POST(request: Request) {
       accountId = existingAccount.id
 
       const updates: any = {}
+
+      // Update email_domain if it's a forwarding domain (like me.com) and we found the real one
+      if (existingAccount.email_domain !== emailDomain &&
+          (existingAccount.email_domain?.includes('me.com') ||
+           existingAccount.email_domain?.includes('icloud.com') ||
+           existingAccount.email_domain?.includes('gmail.com'))) {
+        updates.email_domain = emailDomain
+        console.log(`Updating email_domain from ${existingAccount.email_domain} to ${emailDomain}`)
+      }
 
       // Update URL if we found one and account doesn't have one
       if (extractedUrl && !existingAccount.url) {

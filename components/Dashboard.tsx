@@ -10,6 +10,7 @@ interface Email {
   id: string
   subject: string
   from_address: string
+  body: string | null
   amount: number | null
   received_at: string
 }
@@ -80,7 +81,7 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
             placeholder="Search accounts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-2 bg-white border border-peach-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
+            className="flex-1 px-4 py-2 text-cream-900 bg-white border border-peach-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
           />
           <button
             onClick={() => setIsAddModalOpen(true)}

@@ -22,6 +22,7 @@ export default async function Home() {
         id,
         subject,
         from_address,
+        body,
         amount,
         received_at
       )
