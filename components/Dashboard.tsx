@@ -1,10 +1,11 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import AccountCard from './AccountCard'
 import AddAccountModal from './AddAccountModal'
+import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface Email {
   id: string
@@ -63,7 +64,17 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
       {/* Header */}
       <div className="bg-cream-100 border-b bg-cream-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-cream-900">Spouse House</h1>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/icon.png"
+              alt="Spouse House icon"
+              width={40}
+              height={40}
+              className="rounded-lg"
+              priority
+            />
+            <h1 className="text-2xl font-bold text-cream-900">Spouse House</h1>
+          </div>
           <button
             onClick={handleSignOut}
             className="text-sm text-cream-800 hover:text-cream-900"

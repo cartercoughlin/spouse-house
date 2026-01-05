@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -47,7 +48,17 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-cream-300 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-cream-900">Spouse House</h1>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Image
+              src="/icon.png"
+              alt="Spouse House icon"
+              width={48}
+              height={48}
+              className="rounded-lg"
+              priority
+            />
+            <h1 className="text-3xl font-bold text-cream-900">Spouse House</h1>
+          </div>
           <p className="mt-2 text-cream-700">Manage your bills together</p>
         </div>
 
