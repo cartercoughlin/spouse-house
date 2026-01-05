@@ -7,33 +7,91 @@ function extractDomain(email: string): string {
 }
 
 function extractOriginalSender(subject: string, emailBody: string, fromAddress: string): string {
-  // Check if this is a forwarded email
-  if (subject.match(/^(fwd?|forwarded?):/i)) {
-    // Try to extract original sender from email body
-    // Look for patterns like "From: sender@domain.com" or "From: Name <sender@domain.com>"
-    const fromPattern = /From:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/i
-    const match = emailBody.match(fromPattern)
-    if (match && match[1]) {
-      return match[1].toLowerCase()
-    }
+  console.log('=== EXTRACTING ORIGINAL SENDER ===')
+  console.log('From address:', fromAddress)
+  console.log('Subject:', subject)
+  console.log('Body preview (first 500 chars):', emailBody.substring(0, 500))
 
-    // Try to extract from subject line patterns like "Fwd: Your State Farm bill"
-    // Look for known company patterns in subject
-    const companyPatterns = [
-      /state\s*farm/i,
-      /allstate/i,
-      /geico/i,
-      /progressive/i,
-      /usaa/i,
-      // Add more as needed
+  // Known forwarding domains that indicate this is a forwarded email
+  const forwardingDomains = ['me.com', 'icloud.com', 'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com']
+  const fromDomain = extractDomain(fromAddress)
+  const isForwardingDomain = forwardingDomains.some(d => fromDomain.includes(d))
+  const isForwardedSubject = subject.match(/^(fwd?|fw|forwarded?):/i)
+
+  console.log('Is forwarding domain:', isForwardingDomain)
+  console.log('Is forwarded subject:', !!isForwardedSubject)
+
+  // If this looks like a forwarded email, try to extract the original sender
+  if (isForwardingDomain || isForwardedSubject) {
+    // Try multiple patterns to find email addresses in the body
+    const emailPatterns = [
+      // "From: Name <email@domain.com>" or "From: email@domain.com"
+      /From:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im,
+      // "Reply-To: email@domain.com"
+      /Reply-To:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im,
+      // Any email address that's NOT the forwarding address
+      /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/gi,
     ]
 
-    for (const pattern of companyPatterns) {
-      if (subject.match(pattern)) {
-        const company = subject.match(pattern)?.[0].replace(/\s+/g, '').toLowerCase()
-        return `noreply@${company}.com`
+    for (const pattern of emailPatterns) {
+      const matches = emailBody.matchAll(pattern)
+      for (const match of matches) {
+        if (match[1]) {
+          const foundEmail = match[1].toLowerCase()
+          // Skip if it's the same as the forwarding address or another known forwarding domain
+          if (foundEmail !== fromAddress.toLowerCase() &&
+              !forwardingDomains.some(d => foundEmail.includes(d))) {
+            console.log('Found original sender:', foundEmail)
+            return foundEmail
+          }
+        }
       }
     }
+
+    // Try to extract from subject line - known company patterns
+    const companyPatterns = [
+      { pattern: /betterment/i, domain: 'betterment.com' },
+      { pattern: /state\s*farm/i, domain: 'statefarm.com' },
+      { pattern: /allstate/i, domain: 'allstate.com' },
+      { pattern: /geico/i, domain: 'geico.com' },
+      { pattern: /progressive/i, domain: 'progressive.com' },
+      { pattern: /usaa/i, domain: 'usaa.com' },
+      { pattern: /fidelity/i, domain: 'fidelity.com' },
+      { pattern: /vanguard/i, domain: 'vanguard.com' },
+      { pattern: /charles\s*schwab/i, domain: 'schwab.com' },
+      { pattern: /wells\s*fargo/i, domain: 'wellsfargo.com' },
+      { pattern: /chase/i, domain: 'chase.com' },
+      { pattern: /bank\s*of\s*america/i, domain: 'bankofamerica.com' },
+    ]
+
+    // Check both subject and body for company names
+    const textToSearch = (subject + ' ' + emailBody.substring(0, 1000)).toLowerCase()
+    for (const { pattern, domain } of companyPatterns) {
+      if (textToSearch.match(pattern)) {
+        console.log('Matched company pattern, using domain:', domain)
+        return `noreply@${domain}`
+      }
+    }
+
+    // Try to find domain names in URLs within the email
+    const urlPattern = /https?:\/\/(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})/gi
+    const urlMatches = emailBody.matchAll(urlPattern)
+    const domains = new Set<string>()
+
+    for (const match of urlMatches) {
+      if (match[1] && !forwardingDomains.some(d => match[1].includes(d))) {
+        domains.add(match[1].toLowerCase())
+      }
+    }
+
+    // If we found domains, use the most common one (likely the sender's domain)
+    if (domains.size > 0) {
+      const domainArray = Array.from(domains)
+      console.log('Found domains in URLs:', domainArray)
+      return `noreply@${domainArray[0]}`
+    }
+
+    console.log('Could not extract original sender, falling back to fromAddress')
   }
 
   return fromAddress
@@ -118,18 +176,18 @@ function detectCategory(serviceName: string, emailBody: string, emailDomain: str
     return 'insurance'
   }
 
-  // Banking keywords
-  if (text.match(/bank|credit\s+union|checking|savings|mortgage|loan|chase|wells\s*fargo|bofa|citibank/i)) {
+  // Banking and investment keywords
+  if (text.match(/bank|credit\s+union|checking|savings|mortgage|loan|investment|brokerage|portfolio|betterment|fidelity|vanguard|schwab|chase|wells\s*fargo|bofa|citibank|capital\s*one|td\s*bank|pnc\s*bank/i)) {
     return 'banking'
   }
 
   // Utility keywords
-  if (text.match(/electric|gas|water|power|utility|energy|internet|cable|phone|wireless|mobile|comcast|at&t|verizon/i)) {
+  if (text.match(/electric|gas|water|power|utility|energy|internet|cable|phone|wireless|mobile|comcast|xfinity|at&t|verizon|t-mobile|spectrum/i)) {
     return 'utility'
   }
 
   // Subscription keywords
-  if (text.match(/subscription|streaming|netflix|spotify|hulu|disney|prime|membership/i)) {
+  if (text.match(/subscription|streaming|netflix|spotify|hulu|disney|prime|membership|adobe|dropbox|icloud\s*storage/i)) {
     return 'subscription'
   }
 
