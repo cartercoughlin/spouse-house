@@ -85,11 +85,24 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
     }
   }
 
-  const filteredAccounts = accounts.filter(account =>
-    account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    account.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    account.notes?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredAccounts = accounts.filter(account => {
+    const query = searchQuery.toLowerCase()
+
+    // Search in account fields
+    const matchesAccount =
+      account.name.toLowerCase().includes(query) ||
+      account.category?.toLowerCase().includes(query) ||
+      account.notes?.toLowerCase().includes(query)
+
+    // Search in email content
+    const matchesEmail = account.emails.some(email =>
+      email.subject.toLowerCase().includes(query) ||
+      email.body?.toLowerCase().includes(query) ||
+      email.from_address.toLowerCase().includes(query)
+    )
+
+    return matchesAccount || matchesEmail
+  })
 
   const handleAccountAdded = () => {
     router.refresh()
