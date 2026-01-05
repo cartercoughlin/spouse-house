@@ -19,6 +19,16 @@ const COMMON_EMOJIS = [
 ]
 
 export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
+  const [customEmoji, setCustomEmoji] = useState('')
+
+  const handleCustomSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (customEmoji.trim()) {
+      onSelect(customEmoji.trim())
+      onClose()
+    }
+  }
+
   return (
     <>
       {/* Backdrop */}
@@ -39,7 +49,7 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
           </button>
         </div>
 
-        <div className="grid grid-cols-5 gap-2 max-w-[200px]">
+        <div className="grid grid-cols-5 gap-2 max-w-[200px] mb-3">
           {COMMON_EMOJIS.map((emoji) => (
             <button
               key={emoji}
@@ -53,6 +63,26 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
             </button>
           ))}
         </div>
+
+        <form onSubmit={handleCustomSubmit} className="border-t border-peach-200 pt-2">
+          <label className="text-xs text-cream-700 mb-1 block">Or type/paste any emoji:</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={customEmoji}
+              onChange={(e) => setCustomEmoji(e.target.value)}
+              placeholder="🎨"
+              maxLength={4}
+              className="flex-1 text-cream-900 border border-peach-200 rounded px-2 py-1 text-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+            />
+            <button
+              type="submit"
+              className="bg-sage-500 text-white px-3 py-1 rounded text-xs hover:bg-sage-600"
+            >
+              Use
+            </button>
+          </div>
+        </form>
 
         <button
           onClick={() => {
