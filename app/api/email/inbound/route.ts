@@ -266,8 +266,10 @@ export async function POST(request: Request) {
     // If email body is missing, fetch it from Resend API
     if (!emailHtml && !emailText && !raw && email_id) {
       console.log('Email body missing from webhook, fetching from Resend API...')
+      console.log('Email ID:', email_id)
       try {
-        const resendResponse = await fetch(`https://api.resend.com/emails/${email_id}`, {
+        // Try inbound-specific endpoint
+        const resendResponse = await fetch(`https://api.resend.com/inbound/${email_id}`, {
           headers: {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
           },
@@ -275,11 +277,13 @@ export async function POST(request: Request) {
 
         if (resendResponse.ok) {
           const resendData = await resendResponse.json()
-          console.log('Fetched email from Resend API')
-          emailHtml = resendData.html || resendData.html_body
-          emailText = resendData.text || resendData.text_body
+          console.log('Fetched email from Resend API successfully')
+          console.log('Response keys:', Object.keys(resendData))
+          emailHtml = resendData.html || resendData.html_body || resendData.body?.html
+          emailText = resendData.text || resendData.text_body || resendData.body?.text
         } else {
-          console.error('Failed to fetch email from Resend:', resendResponse.status)
+          const errorText = await resendResponse.text()
+          console.error('Failed to fetch email from Resend:', resendResponse.status, errorText)
         }
       } catch (error) {
         console.error('Error fetching email from Resend API:', error)
