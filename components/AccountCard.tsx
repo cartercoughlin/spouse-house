@@ -92,7 +92,20 @@ export default function AccountCard({ account }: AccountCardProps) {
               className="font-semibold text-lg border border-peach-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-500"
             />
           ) : (
-            <h3 className="font-semibold text-lg">{account.name}</h3>
+            <div className="flex items-center gap-2">
+              {account.email_domain && (
+                <img
+                  src={`https://www.google.com/s2/favicons?domain=${account.email_domain}&sz=64`}
+                  alt={`${account.name} icon`}
+                  className="w-6 h-6 rounded"
+                  onError={(e) => {
+                    // Hide icon if it fails to load
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              )}
+              <h3 className="font-semibold text-lg">{account.name}</h3>
+            </div>
           )}
 
           <div className="flex flex-wrap gap-2 mt-2">
@@ -197,7 +210,7 @@ export default function AccountCard({ account }: AccountCardProps) {
             <>
               {account.url && (
                 <div>
-                  <div className="text-xs text-gray-600">URL</div>
+                  <div className="text-xs font-medium text-cream-800 mb-1">URL</div>
                   <a
                     href={account.url}
                     target="_blank"
@@ -211,30 +224,37 @@ export default function AccountCard({ account }: AccountCardProps) {
 
               {account.email_domain && (
                 <div>
-                  <div className="text-xs text-gray-600">Email Domain</div>
-                  <div className="text-sm">{account.email_domain}</div>
+                  <div className="text-xs font-medium text-cream-800 mb-1">Email Domain</div>
+                  <div className="text-sm text-cream-900">{account.email_domain}</div>
                 </div>
               )}
 
               {account.notes && (
                 <div>
-                  <div className="text-xs text-gray-600">Notes</div>
-                  <div className="text-sm text-gray-700">{account.notes}</div>
+                  <div className="text-xs font-medium text-cream-800 mb-1">Notes</div>
+                  <div className="text-sm text-cream-900">{account.notes}</div>
                 </div>
               )}
 
               {account.emails && account.emails.length > 0 && (
                 <div>
-                  <div className="text-xs text-cream-700 mb-2">Recent Emails ({account.emails.length})</div>
+                  <div className="text-xs font-medium text-cream-800 mb-2">Recent Emails ({account.emails.length})</div>
                   <div className="space-y-2">
                     {account.emails.slice(0, 3).map((email) => (
-                      <div key={email.id} className="text-sm bg-sky-50 p-2 rounded border border-sky-200">
-                        <div className="font-medium">{email.subject}</div>
-                        <div className="text-xs text-sky-700 flex justify-between mt-1">
+                      <button
+                        key={email.id}
+                        onClick={() => {
+                          // TODO: Open email modal/page
+                          alert(`Email ID: ${email.id}\n\nThis will open the full email content.\n\nSubject: ${email.subject}\nFrom: ${email.from_address || 'Unknown'}\nReceived: ${new Date(email.received_at).toLocaleDateString()}`)
+                        }}
+                        className="w-full text-left text-sm bg-sky-50 p-2 rounded border border-sky-200 hover:bg-sky-100 transition-colors"
+                      >
+                        <div className="font-medium text-cream-900">{email.subject}</div>
+                        <div className="text-xs text-sky-800 flex justify-between mt-1">
                           <span>{new Date(email.received_at).toLocaleDateString()}</span>
                           {email.amount && <span className="font-medium">${email.amount}</span>}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
