@@ -18,6 +18,7 @@ interface Email {
 interface Account {
   id: string
   name: string
+  emoji: string | null
   url: string | null
   category: string | null
   email_domain: string | null

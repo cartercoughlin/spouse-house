@@ -74,7 +74,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-3 items-start">
             <div className="relative">
-              <label className="block text-sm font-medium mb-1">Icon</label>
+              <label className="block text-sm font-medium mb-1 text-cream-900">Icon</label>
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -91,7 +91,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             </div>
 
             <div className="flex-1">
-              <label className="block text-sm font-medium mb-1">Name *</label>
+              <label className="block text-sm font-medium mb-1 text-cream-900">Name *</label>
               <input
                 type="text"
                 value={name}
@@ -104,7 +104,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">URL</label>
+            <label className="block text-sm font-medium mb-1 text-cream-900">URL</label>
             <input
               type="url"
               value={url}
@@ -115,7 +115,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
+            <label className="block text-sm font-medium mb-1 text-cream-900">Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -142,7 +142,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Notes</label>
+            <label className="block text-sm font-medium mb-1 text-cream-900">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
