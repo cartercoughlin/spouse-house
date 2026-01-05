@@ -12,6 +12,15 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
   console.log('Subject:', subject)
   console.log('Body preview (first 500 chars):', emailBody.substring(0, 500))
 
+  // Decode common HTML entities that might remain after HTML stripping
+  const decodedBody = emailBody
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+
   // Known forwarding domains that indicate this is a forwarded email
   const forwardingDomains = ['me.com', 'icloud.com', 'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com']
   const fromDomain = extractDomain(fromAddress)
@@ -25,7 +34,7 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
   if (isForwardingDomain || isForwardedSubject) {
     // Try to find "From:" header
     const fromPattern = /From:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im
-    const fromMatch = emailBody.match(fromPattern)
+    const fromMatch = decodedBody.match(fromPattern)
     if (fromMatch && fromMatch[1]) {
       const foundEmail = fromMatch[1].toLowerCase()
       if (foundEmail !== fromAddress.toLowerCase() &&
@@ -37,7 +46,7 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
 
     // Try to find "Reply-To:" header
     const replyToPattern = /Reply-To:\s*(?:.*?<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:>)?/im
-    const replyToMatch = emailBody.match(replyToPattern)
+    const replyToMatch = decodedBody.match(replyToPattern)
     if (replyToMatch && replyToMatch[1]) {
       const foundEmail = replyToMatch[1].toLowerCase()
       if (foundEmail !== fromAddress.toLowerCase() &&
@@ -49,7 +58,7 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
 
     // Look for any email addresses in the body
     const emailPattern = /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/gi
-    const matches = emailBody.matchAll(emailPattern)
+    const matches = decodedBody.matchAll(emailPattern)
     for (const match of matches) {
       if (match[1]) {
         const foundEmail = match[1].toLowerCase()
@@ -79,7 +88,7 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
     ]
 
     // Check both subject and body for company names
-    const textToSearch = (subject + ' ' + emailBody.substring(0, 1000)).toLowerCase()
+    const textToSearch = (subject + ' ' + decodedBody.substring(0, 1000)).toLowerCase()
     for (const { pattern, domain } of companyPatterns) {
       if (textToSearch.match(pattern)) {
         console.log('Matched company pattern, using domain:', domain)
@@ -89,7 +98,7 @@ function extractOriginalSender(subject: string, emailBody: string, fromAddress: 
 
     // Try to find domain names in URLs within the email
     const urlPattern = /https?:\/\/(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})/gi
-    const urlMatches = emailBody.matchAll(urlPattern)
+    const urlMatches = decodedBody.matchAll(urlPattern)
     const domains = new Set<string>()
 
     for (const match of urlMatches) {
