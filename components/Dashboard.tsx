@@ -5,7 +5,7 @@ import AddAccountModal from './AddAccountModal'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface Email {
   id: string
@@ -40,13 +40,49 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [copiedEmail, setCopiedEmail] = useState(false)
+  const copyResetRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    return () => {
+      if (copyResetRef.current) {
+        clearTimeout(copyResetRef.current)
+      }
+    }
+  }, [])
 
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
+  }
+
+  const handleCopyEmail = async () => {
+    const email = 'bills@bloombudget.xyz'
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(email)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = email
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.focus()
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setCopiedEmail(true)
+      if (copyResetRef.current) {
+        clearTimeout(copyResetRef.current)
+      }
+      copyResetRef.current = setTimeout(() => setCopiedEmail(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy email address', error)
+    }
   }
 
   const filteredAccounts = accounts.filter(account =>
@@ -106,9 +142,32 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
         {/* Email Forward Info */}
         <div className="bg-sky-100 border border-sky-300 rounded-lg p-4 text-sm">
           <p className="font-medium text-sky-900 mb-1">Forward emails to add accounts automatically:</p>
-          <code className="bg-sky-200 px-2 py-1 rounded text-sky-900">
-            bills@bloombudget.xyz
-          </code>
+          <div className="flex items-center gap-2">
+            <code className="bg-sky-200 px-2 py-1 rounded text-sky-900">
+              bills@bloombudget.xyz
+            </code>
+            <button
+              type="button"
+              onClick={handleCopyEmail}
+              className="p-1 rounded hover:bg-sky-200 text-sky-900 transition"
+              aria-label="Copy email address"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-4 h-4"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4c0-1.1.9-2 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+            {copiedEmail && <span className="text-xs text-sky-800">Copied!</span>}
+          </div>
         </div>
 
         {/* Accounts List */}
