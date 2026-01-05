@@ -21,6 +21,7 @@ export default async function Home() {
       emails (
         id,
         subject,
+        from_address,
         amount,
         received_at
       )
