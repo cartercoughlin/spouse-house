@@ -89,7 +89,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               type="text"
               value={editedAccount.name}
               onChange={(e) => setEditedAccount({ ...editedAccount, name: e.target.value })}
-              className="font-semibold text-lg border rounded px-2 py-1 w-full"
+              className="font-semibold text-lg border border-amber-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           ) : (
             <h3 className="font-semibold text-lg">{account.name}</h3>
@@ -128,22 +128,22 @@ export default function AccountCard({ account }: AccountCardProps) {
           {isEditing ? (
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-600">URL</label>
+                <label className="text-xs text-amber-700">URL</label>
                 <input
                   type="url"
                   value={editedAccount.url || ''}
                   onChange={(e) => setEditedAccount({ ...editedAccount, url: e.target.value })}
-                  className="w-full border rounded px-2 py-1 text-sm"
+                  className="w-full border border-amber-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-amber-400"
                   placeholder="https://..."
                 />
               </div>
 
               <div>
-                <label className="text-xs text-gray-600">Category</label>
+                <label className="text-xs text-amber-700">Category</label>
                 <select
                   value={editedAccount.category || 'other'}
                   onChange={(e) => setEditedAccount({ ...editedAccount, category: e.target.value })}
-                  className="w-full border rounded px-2 py-1 text-sm"
+                  className="w-full border border-amber-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="banking">Banking</option>
                   <option value="utility">Utility</option>
@@ -166,11 +166,11 @@ export default function AccountCard({ account }: AccountCardProps) {
               </div>
 
               <div>
-                <label className="text-xs text-gray-600">Notes</label>
+                <label className="text-xs text-amber-700">Notes</label>
                 <textarea
                   value={editedAccount.notes || ''}
                   onChange={(e) => setEditedAccount({ ...editedAccount, notes: e.target.value })}
-                  className="w-full border rounded px-2 py-1 text-sm"
+                  className="w-full border border-amber-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-amber-400"
                   rows={3}
                 />
               </div>

@@ -76,7 +76,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-amber-400"
               placeholder="e.g., Pacific Gas & Electric"
             />
           </div>
@@ -87,7 +87,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-amber-400"
               placeholder="https://..."
             />
           </div>
@@ -124,7 +124,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full border border-amber-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-amber-400"
               rows={3}
               placeholder="Additional information..."
             />

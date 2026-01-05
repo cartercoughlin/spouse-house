@@ -35,6 +35,27 @@ export async function POST(request: Request) {
     const emailHtml = html || html_body
     const emailText = text || text_body
 
+    // Get the first user to assign the account to (for household sharing)
+    const { data: users, error: userError } = await supabase
+      .from('accounts')
+      .select('user_id')
+      .limit(1)
+
+    let userId: string | null = null
+
+    if (users && users.length > 0) {
+      userId = users[0].user_id
+    } else {
+      // If no accounts exist yet, get the first user from auth
+      const { data: authUsers } = await supabase.auth.admin.listUsers()
+      if (authUsers.users && authUsers.users.length > 0) {
+        userId = authUsers.users[0].id
+      } else {
+        console.error('No users found in system')
+        return NextResponse.json({ error: 'No users found to assign account' }, { status: 500 })
+      }
+    }
+
     // Try to find matching account by email domain
     const { data: accounts } = await supabase
       .from('accounts')
@@ -48,10 +69,11 @@ export async function POST(request: Request) {
       accountId = accounts[0].id
     } else {
       // Create a new account in pending status for user to review
-      const accountName = from?.name || emailDomain.split('@')[0] || 'Unknown'
+      const accountName = from?.name || emailDomain.split('.')[0] || 'Unknown'
       const { data: newAccount, error } = await supabase
         .from('accounts')
         .insert({
+          user_id: userId,
           name: accountName,
           email_domain: emailDomain,
           category: 'other',
