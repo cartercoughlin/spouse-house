@@ -48,7 +48,7 @@ export default function AccountCard({ account }: AccountCardProps) {
       .eq('id', account.id)
 
     if (!error) {
-      router.refresh()
+      window.location.reload()
     }
   }
 
@@ -70,7 +70,7 @@ export default function AccountCard({ account }: AccountCardProps) {
 
     if (!error) {
       setIsEditing(false)
-      router.refresh()
+      window.location.reload()
     }
   }
 

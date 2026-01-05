@@ -45,9 +45,8 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
 
       if (error) throw error
 
-      onAccountAdded()
-      router.refresh()
       onClose()
+      window.location.reload()
     } catch (error: any) {
       alert(error.message)
     } finally {
