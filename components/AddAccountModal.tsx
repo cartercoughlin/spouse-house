@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import EmojiPicker from './EmojiPicker'
 
 interface AddAccountModalProps {
   onClose: () => void
@@ -17,6 +18,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
   const [autopay, setAutopay] = useState(false)
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,29 +72,35 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Name *</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full text-cream-900 border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
-              placeholder="e.g., Pacific Gas & Electric"
-            />
-          </div>
+          <div className="flex gap-3 items-start">
+            <div className="relative">
+              <label className="block text-sm font-medium mb-1">Icon</label>
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="w-16 h-16 border-2 border-peach-300 rounded-lg flex items-center justify-center text-3xl hover:bg-peach-50 transition-colors"
+              >
+                {emoji || '➕'}
+              </button>
+              {showEmojiPicker && (
+                <EmojiPicker
+                  onSelect={(selectedEmoji) => setEmoji(selectedEmoji)}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
+              )}
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Icon Emoji</label>
-            <input
-              type="text"
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-              maxLength={2}
-              className="w-full text-cream-900 border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500 text-2xl"
-              placeholder="💰"
-            />
-            <p className="text-xs text-cream-700 mt-1">Optional emoji to use as icon instead of favicon</p>
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Name *</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="w-full text-cream-900 border border-peach-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
+                placeholder="e.g., Pacific Gas & Electric"
+              />
+            </div>
           </div>
 
           <div>

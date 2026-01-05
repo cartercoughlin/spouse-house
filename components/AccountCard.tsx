@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import EmojiPicker from './EmojiPicker'
 
 interface Email {
   id: string
@@ -37,6 +38,7 @@ export default function AccountCard({ account }: AccountCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedAccount, setEditedAccount] = useState(account)
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const router = useRouter()
 
   const handleDelete = async () => {
@@ -148,16 +150,24 @@ export default function AccountCard({ account }: AccountCardProps) {
         <div className="mt-4 pt-4 border-t space-y-3">
           {isEditing ? (
             <div className="space-y-3">
-              <div>
-                <label className="text-xs text-cream-700">Icon Emoji</label>
-                <input
-                  type="text"
-                  value={editedAccount.emoji || ''}
-                  onChange={(e) => setEditedAccount({ ...editedAccount, emoji: e.target.value })}
-                  maxLength={2}
-                  className="w-full text-cream-900 border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500 text-2xl"
-                  placeholder="💰"
-                />
+              <div className="relative">
+                <label className="text-xs text-cream-700 mb-1 block">Icon</label>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowEmojiPicker(!showEmojiPicker)
+                  }}
+                  className="w-12 h-12 border-2 border-peach-300 rounded-lg flex items-center justify-center text-2xl hover:bg-peach-50 transition-colors"
+                >
+                  {editedAccount.emoji || '➕'}
+                </button>
+                {showEmojiPicker && (
+                  <EmojiPicker
+                    onSelect={(selectedEmoji) => setEditedAccount({ ...editedAccount, emoji: selectedEmoji })}
+                    onClose={() => setShowEmojiPicker(false)}
+                  />
+                )}
               </div>
 
               <div>
