@@ -16,6 +16,7 @@ interface Email {
 interface Account {
   id: string
   name: string
+  emoji: string | null
   url: string | null
   category: string | null
   email_domain: string | null
@@ -58,6 +59,7 @@ export default function AccountCard({ account }: AccountCardProps) {
       .from('accounts')
       .update({
         name: editedAccount.name,
+        emoji: editedAccount.emoji,
         url: editedAccount.url,
         category: editedAccount.category,
         autopay: editedAccount.autopay,
@@ -100,7 +102,9 @@ export default function AccountCard({ account }: AccountCardProps) {
             />
           ) : (
             <div className="flex items-center gap-2">
-              {account.email_domain && (
+              {account.emoji ? (
+                <span className="text-2xl">{account.emoji}</span>
+              ) : account.email_domain ? (
                 <img
                   src={`https://www.google.com/s2/favicons?domain=${account.email_domain}&sz=64`}
                   alt={`${account.name} icon`}
@@ -110,7 +114,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
-              )}
+              ) : null}
               <h3 className="font-semibold text-lg text-cream-900">{account.name}</h3>
             </div>
           )}
@@ -144,6 +148,18 @@ export default function AccountCard({ account }: AccountCardProps) {
         <div className="mt-4 pt-4 border-t space-y-3">
           {isEditing ? (
             <div className="space-y-3">
+              <div>
+                <label className="text-xs text-cream-700">Icon Emoji</label>
+                <input
+                  type="text"
+                  value={editedAccount.emoji || ''}
+                  onChange={(e) => setEditedAccount({ ...editedAccount, emoji: e.target.value })}
+                  maxLength={2}
+                  className="w-full text-cream-900 border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500 text-2xl"
+                  placeholder="💰"
+                />
+              </div>
+
               <div>
                 <label className="text-xs text-cream-700">URL</label>
                 <input
