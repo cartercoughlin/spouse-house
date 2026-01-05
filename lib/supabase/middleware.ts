@@ -27,6 +27,11 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // Skip authentication for API routes
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return supabaseResponse
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
