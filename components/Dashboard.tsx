@@ -61,7 +61,7 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
   return (
     <div className="min-h-screen bg-cream-300">
       {/* Header */}
-      <div className="bg-peach-100 border-b border-peach-200">
+      <div className="bg-cream-100 border-b bg-cream-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-cream-900">Spouse House</h1>
           <button
