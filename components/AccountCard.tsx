@@ -85,13 +85,17 @@ export default function AccountCard({ account }: AccountCardProps) {
   return (
     <div className="bg-white border border-peach-200 rounded-lg p-4 shadow-sm">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div
+        className="flex items-start justify-between cursor-pointer hover:bg-cream-50 -m-4 p-4 rounded-lg transition-colors"
+        onClick={() => !isEditing && setIsExpanded(!isExpanded)}
+      >
         <div className="flex-1">
           {isEditing ? (
             <input
               type="text"
               value={editedAccount.name}
               onChange={(e) => setEditedAccount({ ...editedAccount, name: e.target.value })}
+              onClick={(e) => e.stopPropagation()}
               className="font-semibold text-lg text-cream-900 border border-peach-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-500"
             />
           ) : (
@@ -130,12 +134,9 @@ export default function AccountCard({ account }: AccountCardProps) {
           </div>
         </div>
 
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-peach-400 hover:text-peach-600 ml-2"
-        >
+        <div className="text-peach-400 hover:text-peach-600 ml-2 text-2xl leading-none">
           {isExpanded ? '−' : '+'}
-        </button>
+        </div>
       </div>
 
       {/* Expanded Content */}
@@ -319,9 +320,10 @@ export default function AccountCard({ account }: AccountCardProps) {
 
               <div>
                 <div className="text-xs font-medium text-cream-800 mb-2">Email Content</div>
-                <div className="bg-cream-50 border border-cream-200 rounded-lg p-4 text-sm text-cream-900 whitespace-pre-wrap max-h-96 overflow-auto">
-                  {selectedEmail.body || 'No content available'}
-                </div>
+                <div
+                  className="bg-cream-50 border border-cream-200 rounded-lg p-4 text-sm text-cream-900 max-h-96 overflow-auto"
+                  dangerouslySetInnerHTML={{ __html: selectedEmail.body || 'No content available' }}
+                />
               </div>
             </div>
           </div>

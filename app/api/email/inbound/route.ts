@@ -290,21 +290,33 @@ export async function POST(request: Request) {
       }
     }
 
-    // If we have raw email, that's the full content
-    let emailBody = ''
-    if (raw) {
-      emailBody = raw
+    // Store the HTML version for display
+    let emailBodyForDisplay = ''
+    if (emailHtml) {
+      emailBodyForDisplay = emailHtml
     } else if (emailText) {
-      emailBody = emailText
-    } else if (emailHtml) {
-      // Strip HTML tags for storage
-      emailBody = emailHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+      // Convert plain text to HTML with line breaks
+      emailBodyForDisplay = emailText.replace(/\n/g, '<br>')
+    } else if (raw) {
+      emailBodyForDisplay = raw.replace(/\n/g, '<br>')
     } else {
-      emailBody = 'No content available - Resend may not be configured to send email body in webhooks'
+      emailBodyForDisplay = 'No content available - Resend may not be configured to send email body in webhooks'
+    }
+
+    // Strip HTML for extraction purposes
+    let emailBodyForExtraction = ''
+    if (raw) {
+      emailBodyForExtraction = raw
+    } else if (emailText) {
+      emailBodyForExtraction = emailText
+    } else if (emailHtml) {
+      emailBodyForExtraction = emailHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    } else {
+      emailBodyForExtraction = 'No content available'
     }
 
     // Extract original sender (handles forwarded emails)
-    const originalSender = extractOriginalSender(subject || '', emailBody, fromAddress)
+    const originalSender = extractOriginalSender(subject || '', emailBodyForExtraction, fromAddress)
     const emailDomain = extractDomain(originalSender)
 
     console.log('Email processing:', {
@@ -314,14 +326,14 @@ export async function POST(request: Request) {
       subject: subject?.substring(0, 50),
       hasHtml: !!emailHtml,
       hasText: !!emailText,
-      bodyLength: emailBody.length
+      bodyLength: emailBodyForExtraction.length
     })
 
     // Extract intelligent data from email
     const serviceName = extractServiceName(subject || '', originalSender, emailDomain)
-    const category = detectCategory(serviceName, emailBody, emailDomain)
-    const autopay = detectAutopay(emailBody)
-    const extractedUrl = extractURLFromEmail(emailBody, emailDomain)
+    const category = detectCategory(serviceName, emailBodyForExtraction, emailDomain)
+    const autopay = detectAutopay(emailBodyForExtraction)
+    const extractedUrl = extractURLFromEmail(emailBodyForExtraction, emailDomain)
 
     // Generate favicon URL
     const iconUrl = `https://www.google.com/s2/favicons?domain=${emailDomain}&sz=128`
@@ -449,11 +461,11 @@ export async function POST(request: Request) {
     }
 
     // Extract bill amount from email
-    const amountMatch = emailBody?.match(/\$[\d,]+\.?\d*/)?.[0]
+    const amountMatch = emailBodyForExtraction?.match(/\$[\d,]+\.?\d*/)?.[0]
     const amount = amountMatch ? parseFloat(amountMatch.replace(/[$,]/g, '')) : null
 
-    // Store the email with cleaned body
-    console.log('Storing email with body length:', emailBody.length)
+    // Store the email with HTML body for display
+    console.log('Storing email with body length:', emailBodyForDisplay.length)
 
     const { error: emailError } = await supabase
       .from('emails')
@@ -461,7 +473,7 @@ export async function POST(request: Request) {
         account_id: accountId,
         subject: subject || 'No subject',
         from_address: fromAddress,
-        body: emailBody,
+        body: emailBodyForDisplay,
         amount,
       })
 
