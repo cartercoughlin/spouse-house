@@ -65,7 +65,7 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
               type="text"
               value={customEmoji}
               onChange={(e) => setCustomEmoji(e.target.value)}
-              placeholder="Click here & press ⌘⌃Space"
+              placeholder=""
               maxLength={4}
               className="flex-1 text-cream-900 border border-peach-200 rounded px-3 py-2 text-2xl focus:outline-none focus:ring-2 focus:ring-sage-500 text-center"
             />
@@ -73,29 +73,11 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
           <button
             type="submit"
             disabled={!customEmoji.trim()}
-            className="w-full mt-2 bg-sage-500 text-white py-2 rounded hover:bg-sage-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="w-full mt-2 bg-sage-500 text-white py-1 rounded hover:bg-sage-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
             Use This Emoji
           </button>
         </form>
-
-        <div className="border-t border-peach-200 pt-3">
-          <p className="text-xs text-cream-700 mb-2">Or pick a common one:</p>
-          <div className="grid grid-cols-5 gap-2 max-w-[200px]">
-            {COMMON_EMOJIS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => {
-                  onSelect(emoji)
-                  onClose()
-                }}
-                className="text-2xl hover:bg-peach-100 rounded p-1 transition-colors"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <button
           onClick={() => {
