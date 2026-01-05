@@ -14,16 +14,26 @@ export async function POST(request: Request) {
   )
   try {
     const body = await request.json()
+    console.log('Received webhook payload:', JSON.stringify(body, null, 2))
+
+    // Resend wraps the email data in a 'data' object
+    const emailData = body.data || body
 
     const {
       from,
       subject,
       html,
       text,
-    } = body
+      html_body,
+      text_body,
+    } = emailData
 
     const fromAddress = from?.email || from
-    const emailDomain = extractDomain(fromAddress)
+    const emailDomain = extractDomain(fromAddress || '')
+
+    // Use either html/text or html_body/text_body (different webhook formats)
+    const emailHtml = html || html_body
+    const emailText = text || text_body
 
     // Try to find matching account by email domain
     const { data: accounts } = await supabase
@@ -38,10 +48,11 @@ export async function POST(request: Request) {
       accountId = accounts[0].id
     } else {
       // Create a new account in pending status for user to review
+      const accountName = from?.name || emailDomain.split('@')[0] || 'Unknown'
       const { data: newAccount, error } = await supabase
         .from('accounts')
         .insert({
-          name: from?.name || emailDomain,
+          name: accountName,
           email_domain: emailDomain,
           category: 'other',
           notes: 'Auto-created from email. Please review and update.',
@@ -51,7 +62,7 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error('Error creating account:', error)
-        return NextResponse.json({ error: 'Failed to create account' }, { status: 500 })
+        return NextResponse.json({ error: 'Failed to create account', details: error.message }, { status: 500 })
       }
 
       accountId = newAccount.id
@@ -59,7 +70,8 @@ export async function POST(request: Request) {
 
     // Extract potential bill amount and due date from email
     // Simple regex patterns - can be enhanced with AI later
-    const amountMatch = (text || html)?.match(/\$[\d,]+\.?\d*/)?.[0]
+    const emailBody = emailText || emailHtml || 'No content'
+    const amountMatch = emailBody?.match(/\$[\d,]+\.?\d*/)?.[0]
     const amount = amountMatch ? parseFloat(amountMatch.replace(/[$,]/g, '')) : null
 
     // Store the email
@@ -67,9 +79,9 @@ export async function POST(request: Request) {
       .from('emails')
       .insert({
         account_id: accountId,
-        subject,
+        subject: subject || 'No subject',
         from_address: fromAddress,
-        body: text || html,
+        body: emailBody,
         amount,
       })
 
@@ -79,8 +91,12 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing email:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({
+      error: 'Internal server error',
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 })
   }
 }
