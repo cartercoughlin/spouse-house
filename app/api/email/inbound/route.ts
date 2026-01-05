@@ -254,13 +254,37 @@ export async function POST(request: Request) {
       html_body,
       text_body,
       raw,
+      email_id,
     } = emailData
 
     const fromAddress = from?.email || from
 
     // Try multiple possible field names for email content
-    const emailHtml = html || html_body || emailData.htmlBody
-    const emailText = text || text_body || emailData.textBody || emailData.plain
+    let emailHtml = html || html_body || emailData.htmlBody
+    let emailText = text || text_body || emailData.textBody || emailData.plain
+
+    // If email body is missing, fetch it from Resend API
+    if (!emailHtml && !emailText && !raw && email_id) {
+      console.log('Email body missing from webhook, fetching from Resend API...')
+      try {
+        const resendResponse = await fetch(`https://api.resend.com/emails/${email_id}`, {
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          },
+        })
+
+        if (resendResponse.ok) {
+          const resendData = await resendResponse.json()
+          console.log('Fetched email from Resend API')
+          emailHtml = resendData.html || resendData.html_body
+          emailText = resendData.text || resendData.text_body
+        } else {
+          console.error('Failed to fetch email from Resend:', resendResponse.status)
+        }
+      } catch (error) {
+        console.error('Error fetching email from Resend API:', error)
+      }
+    }
 
     // If we have raw email, that's the full content
     let emailBody = ''
