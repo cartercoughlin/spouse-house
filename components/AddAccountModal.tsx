@@ -129,7 +129,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
                 onChange={(e) => setAutopay(e.target.checked)}
                 className="mr-2"
               />
-              <span className="text-sm font-medium">Autopay enabled</span>
+              <span className="text-sm font-medium text-cream-900">Autopay enabled</span>
             </label>
           </div>
 
@@ -155,7 +155,7 @@ export default function AddAccountModal({ onClose, onAccountAdded }: AddAccountM
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-peach-300 py-2 rounded-lg hover:bg-peach-50"
+              className="flex-1 border border-peach-300 py-2 rounded-lg hover:bg-peach-50 text-cream-900"
             >
               Cancel
             </button>

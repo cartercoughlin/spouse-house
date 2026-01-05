@@ -187,7 +187,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               </div>
 
               <div className="flex gap-2">
-                <label className="flex items-center text-sm">
+                <label className="flex items-center text-sm text-cream-900">
                   <input
                     type="checkbox"
                     checked={editedAccount.autopay}
@@ -220,7 +220,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                     setIsEditing(false)
                     setEditedAccount(account)
                   }}
-                  className="border border-peach-300 px-4 py-2 rounded text-sm hover:bg-peach-50"
+                  className="border border-peach-300 px-4 py-2 rounded text-sm hover:bg-peach-50 text-cream-900"
                 >
                   Cancel
                 </button>
