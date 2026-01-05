@@ -80,7 +80,7 @@ export default function AccountCard({ account }: AccountCardProps) {
   }
 
   return (
-    <div className="bg-white border border-amber-200 rounded-lg p-4 shadow-sm">
+    <div className="bg-white border border-peach-200 rounded-lg p-4 shadow-sm">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -89,7 +89,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               type="text"
               value={editedAccount.name}
               onChange={(e) => setEditedAccount({ ...editedAccount, name: e.target.value })}
-              className="font-semibold text-lg border border-amber-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="font-semibold text-lg border border-peach-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-500"
             />
           ) : (
             <h3 className="font-semibold text-lg">{account.name}</h3>
@@ -107,7 +107,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               </span>
             )}
             {account.due_date && (
-              <span className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700">
+              <span className="text-xs px-2 py-1 rounded bg-peach-100 text-peach-700">
                 Due: {account.due_date}th
               </span>
             )}
@@ -116,7 +116,7 @@ export default function AccountCard({ account }: AccountCardProps) {
 
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-amber-400 hover:text-amber-600 ml-2"
+          className="text-peach-400 hover:text-peach-600 ml-2"
         >
           {isExpanded ? '−' : '+'}
         </button>
@@ -128,22 +128,22 @@ export default function AccountCard({ account }: AccountCardProps) {
           {isEditing ? (
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-amber-700">URL</label>
+                <label className="text-xs text-cream-700">URL</label>
                 <input
                   type="url"
                   value={editedAccount.url || ''}
                   onChange={(e) => setEditedAccount({ ...editedAccount, url: e.target.value })}
-                  className="w-full border border-amber-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-amber-400"
+                  className="w-full border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
                   placeholder="https://..."
                 />
               </div>
 
               <div>
-                <label className="text-xs text-amber-700">Category</label>
+                <label className="text-xs text-cream-700">Category</label>
                 <select
                   value={editedAccount.category || 'other'}
                   onChange={(e) => setEditedAccount({ ...editedAccount, category: e.target.value })}
-                  className="w-full border border-amber-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
                 >
                   <option value="banking">Banking</option>
                   <option value="utility">Utility</option>
@@ -166,11 +166,11 @@ export default function AccountCard({ account }: AccountCardProps) {
               </div>
 
               <div>
-                <label className="text-xs text-amber-700">Notes</label>
+                <label className="text-xs text-cream-700">Notes</label>
                 <textarea
                   value={editedAccount.notes || ''}
                   onChange={(e) => setEditedAccount({ ...editedAccount, notes: e.target.value })}
-                  className="w-full border border-amber-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 placeholder:text-amber-400"
+                  className="w-full border border-peach-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500 placeholder:text-cream-500"
                   rows={3}
                 />
               </div>
@@ -178,7 +178,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
-                  className="bg-amber-600 text-white px-4 py-2 rounded text-sm hover:bg-amber-700"
+                  className="bg-sage-500 text-white px-4 py-2 rounded text-sm hover:bg-sage-600"
                 >
                   Save
                 </button>
@@ -187,7 +187,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                     setIsEditing(false)
                     setEditedAccount(account)
                   }}
-                  className="border border-amber-300 px-4 py-2 rounded text-sm hover:bg-amber-50"
+                  className="border border-peach-300 px-4 py-2 rounded text-sm hover:bg-peach-50"
                 >
                   Cancel
                 </button>
@@ -202,7 +202,7 @@ export default function AccountCard({ account }: AccountCardProps) {
                     href={account.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-amber-700 hover:underline break-all"
+                    className="text-sm text-sage-700 hover:underline break-all"
                   >
                     {account.url}
                   </a>
@@ -225,12 +225,12 @@ export default function AccountCard({ account }: AccountCardProps) {
 
               {account.emails && account.emails.length > 0 && (
                 <div>
-                  <div className="text-xs text-amber-700 mb-2">Recent Emails ({account.emails.length})</div>
+                  <div className="text-xs text-cream-700 mb-2">Recent Emails ({account.emails.length})</div>
                   <div className="space-y-2">
                     {account.emails.slice(0, 3).map((email) => (
-                      <div key={email.id} className="text-sm bg-amber-50 p-2 rounded border border-amber-200">
+                      <div key={email.id} className="text-sm bg-sky-50 p-2 rounded border border-sky-200">
                         <div className="font-medium">{email.subject}</div>
-                        <div className="text-xs text-amber-700 flex justify-between mt-1">
+                        <div className="text-xs text-sky-700 flex justify-between mt-1">
                           <span>{new Date(email.received_at).toLocaleDateString()}</span>
                           {email.amount && <span className="font-medium">${email.amount}</span>}
                         </div>
@@ -243,7 +243,7 @@ export default function AccountCard({ account }: AccountCardProps) {
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-sm text-amber-700 hover:text-amber-900 font-medium"
+                  className="text-sm text-sage-700 hover:text-sage-900 font-medium"
                 >
                   Edit
                 </button>

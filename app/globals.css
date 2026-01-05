@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #EDE4D5;
+  --foreground: #4e4231;
+
+  /* Custom color palette */
+  --color-peach: #F2CBC4;
+  --color-cream: #EDE4D5;
+  --color-sage: #99BD8E;
+  --color-sky: #C2DAED;
 }
 
 @theme inline {
@@ -10,6 +16,54 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Peach color scale */
+  --color-peach-50: #FDF5F4;
+  --color-peach-100: #FBEAE7;
+  --color-peach-200: #F8D9D3;
+  --color-peach-300: #F2CBC4;
+  --color-peach-400: #E8A89C;
+  --color-peach-500: #DE8574;
+  --color-peach-600: #D4624C;
+  --color-peach-700: #B54530;
+  --color-peach-800: #8F3625;
+  --color-peach-900: #6A281C;
+
+  /* Cream color scale */
+  --color-cream-50: #FDFCFB;
+  --color-cream-100: #F9F7F4;
+  --color-cream-200: #F5F0E9;
+  --color-cream-300: #EDE4D5;
+  --color-cream-400: #DED0B8;
+  --color-cream-500: #CFBC9B;
+  --color-cream-600: #C0A87E;
+  --color-cream-700: #9A8563;
+  --color-cream-800: #74634A;
+  --color-cream-900: #4E4231;
+
+  /* Sage color scale */
+  --color-sage-50: #F4F8F2;
+  --color-sage-100: #E6F0E2;
+  --color-sage-200: #D3E5CB;
+  --color-sage-300: #B8D6AE;
+  --color-sage-400: #99BD8E;
+  --color-sage-500: #7AA46D;
+  --color-sage-600: #5B8B4C;
+  --color-sage-700: #487038;
+  --color-sage-800: #35542A;
+  --color-sage-900: #23381C;
+
+  /* Sky color scale */
+  --color-sky-50: #F7FBFD;
+  --color-sky-100: #EDF6FB;
+  --color-sky-200: #DEEEF8;
+  --color-sky-300: #C2DAED;
+  --color-sky-400: #9BC4E0;
+  --color-sky-500: #74AED3;
+  --color-sky-600: #4D98C6;
+  --color-sky-700: #3B7A9E;
+  --color-sky-800: #2D5C76;
+  --color-sky-900: #1F3E4E;
 }
 
 @media (prefers-color-scheme: dark) {
