@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 interface Email {
   id: string
   subject: string
+  from_address: string
   amount: number | null
   received_at: string
 }

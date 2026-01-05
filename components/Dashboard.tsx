@@ -9,6 +9,7 @@ import AddAccountModal from './AddAccountModal'
 interface Email {
   id: string
   subject: string
+  from_address: string
   amount: number | null
   received_at: string
 }
