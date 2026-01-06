@@ -38,7 +38,9 @@ export default function LoginPage() {
         router.refresh()
       }
     } catch (err: any) {
-      setError(err.message)
+      console.error('Authentication error:', err)
+      console.error('Error details:', JSON.stringify(err, null, 2))
+      setError(err.message || 'An error occurred')
     } finally {
       setLoading(false)
     }
