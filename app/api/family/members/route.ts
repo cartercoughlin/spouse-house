@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
     const supabase = await createClient()
+    const adminClient = createAdminClient()
 
     // Get current user
     const {
@@ -47,11 +49,11 @@ export async function GET() {
     // Get user details for each family member
     const membersWithDetails = await Promise.all(
       members.map(async (member) => {
-        const { data: userData } = await supabase.auth.admin.getUserById(member.user_id)
+        const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(member.user_id)
         return {
           id: member.id,
           user_id: member.user_id,
-          email: userData.user?.email || 'Unknown',
+          email: userData?.user?.email || 'Unknown',
           role: member.role,
           joined_at: member.joined_at,
         }
