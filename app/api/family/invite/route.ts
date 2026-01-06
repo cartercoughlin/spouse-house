@@ -43,18 +43,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No family found' }, { status: 404 })
     }
 
-    // Check if the email is already a member of this family
-    const { data: existingMember } = await supabase
-      .from('family_members')
-      .select('id')
-      .eq('family_id', familyMember.family_id)
-      .eq('user_id', supabase.auth.admin.getUserById(email))
-      .single()
-
-    if (existingMember) {
-      return NextResponse.json({ error: 'User is already a family member' }, { status: 400 })
-    }
-
     // Check if there's already a pending invitation for this email
     const { data: existingInvite } = await supabase
       .from('family_invitations')
