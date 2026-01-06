@@ -1,8 +1,9 @@
 -- Fix permission issues and infinite recursion with a simpler approach
--- Drop the problematic function and policies
-DROP FUNCTION IF EXISTS is_user_in_family(UUID, UUID);
+-- Drop the problematic policies first, then the function
 DROP POLICY IF EXISTS "Users can view members of their families" ON family_members;
 DROP POLICY IF EXISTS "Family owners can remove family members" ON family_members;
+DROP POLICY IF EXISTS "Users can remove family members" ON family_members;
+DROP FUNCTION IF EXISTS is_user_in_family(UUID, UUID) CASCADE;
 
 -- Simple policy: Users can view family_members rows for families they belong to
 -- We avoid recursion by checking if a row with matching family_id and current user exists
