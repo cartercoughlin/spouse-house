@@ -41,12 +41,37 @@ export async function GET() {
     // Get inviter details for each invitation
     const invitationsWithDetails = await Promise.all(
       invitations.map(async (invitation) => {
-        const { data: inviterData, error: inviterError } = await adminClient.auth.admin.getUserById(invitation.inviter_id)
-        return {
-          id: invitation.id,
-          family_id: invitation.family_id,
-          inviter_email: inviterData?.user?.email || 'Unknown',
-          created_at: invitation.created_at,
+        // Validate UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        if (!invitation.inviter_id || !uuidRegex.test(invitation.inviter_id)) {
+          console.error('Invalid inviter_id:', invitation.inviter_id)
+          return {
+            id: invitation.id,
+            family_id: invitation.family_id,
+            inviter_email: 'Invalid User',
+            created_at: invitation.created_at,
+          }
+        }
+
+        try {
+          const { data: inviterData, error: inviterError } = await adminClient.auth.admin.getUserById(invitation.inviter_id)
+          if (inviterError) {
+            console.error('Error fetching inviter:', inviterError, 'for inviter_id:', invitation.inviter_id)
+          }
+          return {
+            id: invitation.id,
+            family_id: invitation.family_id,
+            inviter_email: inviterData?.user?.email || 'Unknown',
+            created_at: invitation.created_at,
+          }
+        } catch (err) {
+          console.error('Exception fetching inviter:', err, 'for inviter_id:', invitation.inviter_id)
+          return {
+            id: invitation.id,
+            family_id: invitation.family_id,
+            inviter_email: 'Error',
+            created_at: invitation.created_at,
+          }
         }
       })
     )
