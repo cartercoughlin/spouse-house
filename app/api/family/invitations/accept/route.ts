@@ -42,18 +42,38 @@ export async function POST(request: Request) {
       .single()
 
     if (existingMembership) {
-      // User is already in a family - need to leave current family first
-      // For now, we'll just return an error, but you could implement family switching
-      return NextResponse.json(
-        { error: 'You are already in a family. Leave your current family first to accept this invitation.' },
-        { status: 400 }
-      )
+      // Check if user is the only member of their current family
+      const { data: familyMembers } = await supabase
+        .from('family_members')
+        .select('id')
+        .eq('family_id', existingMembership.family_id)
+
+      if (familyMembers && familyMembers.length === 1) {
+        // User is the only member, safe to leave and join new family
+        await supabase
+          .from('family_members')
+          .delete()
+          .eq('id', existingMembership.id)
+
+        // Delete the now-empty family
+        await supabase
+          .from('families')
+          .delete()
+          .eq('id', existingMembership.family_id)
+      } else {
+        // User is in a family with other members
+        return NextResponse.json(
+          { error: 'You are already in a family with other members. Leave your current family first to accept this invitation.' },
+          { status: 400 }
+        )
+      }
     }
 
     // Add user to the family
     const { error: addMemberError } = await supabase.from('family_members').insert({
       family_id: invitation.family_id,
       user_id: user.id,
+      user_email: user.email, // Store email to avoid lookups
       role: 'member',
     })
 
