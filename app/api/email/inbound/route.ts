@@ -340,24 +340,18 @@ export async function POST(request: Request) {
 
     // Get the first user to assign the account to (for household sharing)
     const { data: users, error: userError } = await supabase
-      .from('accounts')
+      .from('family_members')
       .select('user_id')
-      .limit(1)
+      .eq('user_email', fromAddress)
 
     let userId: string | null = null
 
     if (users && users.length > 0) {
       userId = users[0].user_id
     } else {
-      // If no accounts exist yet, get the first user from auth
-      const { data: authUsers } = await supabase.auth.admin.listUsers()
-      if (authUsers.users && authUsers.users.length > 0) {
-        userId = authUsers.users[0].id
-      } else {
-        console.error('No users found in system')
+        console.error('No matching email account')
         return NextResponse.json({ error: 'No users found to assign account' }, { status: 500 })
       }
-    }
 
     // Try to find matching account by email domain OR by service name
     let { data: accounts } = await supabase
