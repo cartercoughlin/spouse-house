@@ -74,6 +74,7 @@ export async function POST(request: Request) {
       .insert({
         family_id: familyMember.family_id,
         inviter_id: user.id,
+        inviter_email: user.email, // Store inviter email to avoid admin lookups
         invitee_email: email.toLowerCase(),
         status: 'pending',
       })
