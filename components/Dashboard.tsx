@@ -2,6 +2,7 @@
 
 import AccountCard from './AccountCard'
 import AddAccountModal from './AddAccountModal'
+import FamilyModal from './FamilyModal'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -40,6 +41,7 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const copyResetRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
@@ -52,12 +54,6 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
     }
   }, [])
 
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
 
   const handleCopyEmail = async () => {
     const email = 'bills@bloombudget.xyz'
@@ -125,10 +121,25 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
             <h1 className="text-2xl font-bold text-cream-900">Spouse House</h1>
           </div>
           <button
-            onClick={handleSignOut}
-            className="text-sm text-cream-800 hover:text-cream-900"
+            onClick={() => setIsFamilyModalOpen(true)}
+            className="text-cream-800 hover:text-cream-900 p-2 rounded-lg hover:bg-cream-300 transition"
+            aria-label="Family"
           >
-            Sign Out
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-6 h-6"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
           </button>
         </div>
       </div>
@@ -202,6 +213,14 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
         <AddAccountModal
           onClose={() => setIsAddModalOpen(false)}
           onAccountAdded={handleAccountAdded}
+        />
+      )}
+
+      {/* Family Modal */}
+      {isFamilyModalOpen && (
+        <FamilyModal
+          onClose={() => setIsFamilyModalOpen(false)}
+          currentUserEmail={user?.email || ''}
         />
       )}
     </div>
