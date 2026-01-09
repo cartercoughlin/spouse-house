@@ -202,7 +202,12 @@ export default function Dashboard({ initialAccounts, user }: DashboardProps) {
             </div>
           ) : (
             filteredAccounts.map((account) => (
-              <AccountCard key={account.id} account={account} />
+              <AccountCard
+                key={account.id}
+                account={account}
+                userId={user?.id}
+                userEmail={user?.email}
+              />
             ))
           )}
         </div>
