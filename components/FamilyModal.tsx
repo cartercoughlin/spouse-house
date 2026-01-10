@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { clearKeyFromSession } from '@/lib/crypto'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -145,6 +146,9 @@ export default function FamilyModal({ onClose, currentUserEmail }: FamilyModalPr
   }
 
   const handleSignOut = async () => {
+    // Clear password vault session before signing out
+    clearKeyFromSession()
+
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
