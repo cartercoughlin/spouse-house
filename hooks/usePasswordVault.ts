@@ -275,6 +275,63 @@ export function usePasswordVault(userId: string | undefined) {
     }))
   }, [])
 
+  // Delete a passkey and refresh state
+  const deletePasskey = useCallback(
+    async (credentialId: string): Promise<boolean> => {
+      try {
+        const response = await fetch(`/api/credentials/webauthn?id=${credentialId}`, {
+          method: 'DELETE',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to delete passkey')
+        }
+
+        // Refresh passkey status
+        const checkResponse = await fetch('/api/credentials/webauthn')
+        const data = await checkResponse.json()
+
+        // Clear session and update state
+        clearKeyFromSession()
+        setEncryptionKey(null)
+        setState((prev) => ({
+          ...prev,
+          isUnlocked: false,
+          hasPasskey: data.hasCredentials,
+        }))
+
+        return true
+      } catch (error) {
+        console.error('Error deleting passkey:', error)
+        return false
+      }
+    },
+    []
+  )
+
+  // Refresh the vault state (useful after external changes)
+  const refreshState = useCallback(async () => {
+    if (!userId) return
+
+    setState((prev) => ({ ...prev, isLoading: true }))
+
+    try {
+      const response = await fetch('/api/credentials/webauthn')
+      const data = await response.json()
+
+      const platformAvailable = await isPlatformAuthenticatorAvailable()
+
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        hasPasskey: data.hasCredentials && platformAvailable,
+      }))
+    } catch (error) {
+      console.error('Error refreshing vault state:', error)
+      setState((prev) => ({ ...prev, isLoading: false }))
+    }
+  }, [userId])
+
   // Encrypt credentials for storage
   const encryptCredentials = useCallback(
     async (
@@ -357,6 +414,8 @@ export function usePasswordVault(userId: string | undefined) {
     setupPasskey,
     unlockVault,
     lockVault,
+    deletePasskey,
+    refreshState,
     encryptCredentials,
     decryptCredentials,
   }

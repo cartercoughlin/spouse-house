@@ -31,6 +31,28 @@ export default function PasswordManager({
   })
   const [hasStoredCredentials, setHasStoredCredentials] = useState(false)
   const [decryptionFailed, setDecryptionFailed] = useState(false)
+  const [passkeys, setPasskeys] = useState<Array<{ id: string; device_type: string; created_at: string }>>([])
+
+  // Refresh vault state on mount
+  useEffect(() => {
+    vault.refreshState()
+  }, [vault.refreshState])
+
+  // Load passkeys for management
+  useEffect(() => {
+    const loadPasskeys = async () => {
+      try {
+        const response = await fetch('/api/credentials/webauthn')
+        const data = await response.json()
+        if (data.credentials) {
+          setPasskeys(data.credentials)
+        }
+      } catch (error) {
+        console.error('Error loading passkeys:', error)
+      }
+    }
+    loadPasskeys()
+  }, [vault.hasPasskey])
 
   // Load credentials when vault is unlocked
   useEffect(() => {
@@ -256,6 +278,29 @@ export default function PasswordManager({
               >
                 Unlock with {vault.authenticatorName}
               </button>
+
+              {/* Passkey management */}
+              {passkeys.length > 0 && (
+                <div className="pt-4 border-t border-cream-200">
+                  <p className="text-xs text-cream-600 mb-2">Having issues? Delete your passkey to set up again:</p>
+                  {passkeys.map((passkey) => (
+                    <div key={passkey.id} className="flex items-center justify-between text-sm py-1">
+                      <span className="text-cream-700">{passkey.device_type || 'Passkey'}</span>
+                      <button
+                        onClick={async () => {
+                          if (confirm('Delete this passkey? You will need to set up a new one.')) {
+                            await vault.deletePasskey(passkey.id)
+                            setPasskeys((prev) => prev.filter((p) => p.id !== passkey.id))
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
