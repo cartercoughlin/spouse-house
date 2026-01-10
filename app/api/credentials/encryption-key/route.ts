@@ -19,9 +19,9 @@ export async function GET() {
       .from('user_encryption_keys')
       .select('encryption_key')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error fetching encryption key:', error)
       return NextResponse.json({ error: 'Failed to fetch encryption key' }, { status: 500 })
     }
@@ -57,37 +57,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing encryption key' }, { status: 400 })
     }
 
-    // Check if key already exists
-    const { data: existing } = await supabase
+    // Use upsert to insert or update in one operation
+    const { error } = await supabase
       .from('user_encryption_keys')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (existing) {
-      // Update existing key
-      const { error } = await supabase
-        .from('user_encryption_keys')
-        .update({ encryption_key: encryptionKey })
-        .eq('user_id', user.id)
-
-      if (error) {
-        console.error('Error updating encryption key:', error)
-        return NextResponse.json({ error: 'Failed to update encryption key' }, { status: 500 })
-      }
-    } else {
-      // Insert new key
-      const { error } = await supabase
-        .from('user_encryption_keys')
-        .insert({
+      .upsert(
+        {
           user_id: user.id,
           encryption_key: encryptionKey,
-        })
+        },
+        {
+          onConflict: 'user_id',
+        }
+      )
 
-      if (error) {
-        console.error('Error storing encryption key:', error)
-        return NextResponse.json({ error: 'Failed to store encryption key' }, { status: 500 })
-      }
+    if (error) {
+      console.error('Error storing encryption key:', error)
+      return NextResponse.json({ error: 'Failed to store encryption key' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
