@@ -26,6 +26,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch encryption key' }, { status: 500 })
     }
 
+    // Debug logging
+    console.log('[GET encryption-key] user_id:', user.id)
+    console.log('[GET encryption-key] keyData:', keyData ? 'row exists' : 'no row')
+    console.log('[GET encryption-key] encryption_key present:', !!keyData?.encryption_key)
+    console.log('[GET encryption-key] key length:', keyData?.encryption_key?.length || 0)
+
     return NextResponse.json({
       encryptionKey: keyData?.encryption_key || null,
       hasKey: !!keyData?.encryption_key
