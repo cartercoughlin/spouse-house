@@ -31,6 +31,7 @@ export async function GET() {
     console.log('[GET encryption-key] keyData:', keyData ? 'row exists' : 'no row')
     console.log('[GET encryption-key] encryption_key present:', !!keyData?.encryption_key)
     console.log('[GET encryption-key] key length:', keyData?.encryption_key?.length || 0)
+    console.log('[GET encryption-key] key first 10 chars:', keyData?.encryption_key?.substring(0, 10) || 'N/A')
 
     return NextResponse.json({
       encryptionKey: keyData?.encryption_key || null,
@@ -63,6 +64,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing encryption key' }, { status: 400 })
     }
 
+    console.log('[POST encryption-key] Storing key, length:', encryptionKey.length)
+    console.log('[POST encryption-key] Key first 10 chars:', encryptionKey.substring(0, 10))
+
     // Use upsert to insert or update in one operation
     const { error } = await supabase
       .from('user_encryption_keys')
@@ -80,6 +84,16 @@ export async function POST(request: NextRequest) {
       console.error('Error storing encryption key:', error)
       return NextResponse.json({ error: 'Failed to store encryption key' }, { status: 500 })
     }
+
+    // Verify it was stored correctly
+    const { data: verifyData } = await supabase
+      .from('user_encryption_keys')
+      .select('encryption_key')
+      .eq('user_id', user.id)
+      .single()
+
+    console.log('[POST encryption-key] Verified stored key first 10 chars:', verifyData?.encryption_key?.substring(0, 10))
+    console.log('[POST encryption-key] Keys match:', verifyData?.encryption_key === encryptionKey)
 
     return NextResponse.json({ success: true })
   } catch (error) {
