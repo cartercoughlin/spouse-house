@@ -86,14 +86,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify it was stored correctly
-    const { data: verifyData } = await supabase
+    const { data: verifyData, error: verifyError } = await supabase
       .from('user_encryption_keys')
       .select('encryption_key')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    console.log('[POST encryption-key] Verified stored key first 10 chars:', verifyData?.encryption_key?.substring(0, 10))
+    console.log('[POST encryption-key] Verify error:', verifyError)
+    console.log('[POST encryption-key] Verified stored key first 10 chars:', verifyData?.encryption_key?.substring(0, 10) || 'N/A')
     console.log('[POST encryption-key] Keys match:', verifyData?.encryption_key === encryptionKey)
+
+    if (!verifyData?.encryption_key || verifyData.encryption_key !== encryptionKey) {
+      console.error('[POST encryption-key] Verification failed - key not stored correctly')
+      return NextResponse.json({ error: 'Failed to verify stored encryption key' }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
