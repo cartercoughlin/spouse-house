@@ -21,6 +21,14 @@ A simple app to manage and sync all your bills, accounts, and subscriptions in o
 - **Instant updates** - all changes immediately refresh the page to show updated content
 - Simple, mobile-responsive UI with warm neutral color palette
 
+### Password Vault
+- **Secure credential storage** - store usernames, passwords, and notes for each account
+- **Biometric authentication** - unlock with Face ID, Touch ID, or Windows Hello via WebAuthn
+- **AES-256-GCM encryption** - credentials encrypted client-side before storage
+- **Cross-device sync** - encryption keys stored securely in database for access on any device
+- **Per-account passwords** - each account can have its own stored credentials
+- Click the key icon on any account card to access the password vault
+
 ### Progressive Web App (PWA)
 - **Add to Home Screen** - install as a native-like app on iOS and Android
 - **Automatic silent updates** - app automatically updates in the background without user intervention
@@ -103,12 +111,30 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 **Important**: Ensure environment variables are properly configured in Vercel before deployment to avoid prerendering errors.
 
-### 7. Run Database Migration (for emoji support)
+### 7. Run Database Migrations
 
-If you're upgrading from a previous version, run this SQL in your Supabase SQL Editor:
+If you're upgrading from a previous version, run these SQL migrations in your Supabase SQL Editor:
 
+**Emoji support:**
 ```sql
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS emoji text;
+```
+
+**Password Vault (WebAuthn & encrypted credentials):**
+```sql
+-- Run the contents of supabase/add-credentials-and-webauthn.sql
+-- This creates:
+--   - webauthn_credentials table (for Face ID/Touch ID passkeys)
+--   - account_credentials table (for encrypted passwords)
+--   - Row Level Security policies
+```
+
+**Cross-device encryption key storage:**
+```sql
+-- Run the contents of supabase/add-encryption-key-storage.sql
+-- This creates:
+--   - user_encryption_keys table (for storing encryption keys)
+--   - Row Level Security policies
 ```
 
 ## PWA Installation
@@ -196,10 +222,24 @@ The app uses Supabase Auth with email/password authentication. All authenticated
 
 Row Level Security policies are configured to allow all authenticated users to access all accounts and emails.
 
+### Using the Password Vault
+
+1. Click the **key icon** on any account card
+2. First time: Click "Enable Face ID" (or Touch ID/Windows Hello) to set up biometric authentication
+3. Your encryption key is generated and stored securely
+4. Add your username, password, and any notes
+5. Click "Save" - credentials are encrypted client-side before storage
+6. Next time: Use biometrics to unlock and view your stored credentials
+
+**Security notes:**
+- Passwords are encrypted with AES-256-GCM before leaving your device
+- Only you can decrypt your passwords using your biometric authentication
+- Encryption keys are stored in the database for cross-device access
+- No plaintext passwords are ever transmitted or stored
+
 ## Future Enhancements
 
 - iOS share sheet extension
-- iCloud Keychain integration
 - Plaid integration for financial accounts
 - Due date reminders/notifications
 - Enhanced AI-powered email parsing with GPT-4 for complex scenarios
