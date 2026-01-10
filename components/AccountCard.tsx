@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import EmojiPicker from './EmojiPicker'
+import PasswordManager from './PasswordManager'
 
 interface Email {
   id: string
@@ -31,14 +32,17 @@ interface Account {
 
 interface AccountCardProps {
   account: Account
+  userId?: string
+  userEmail?: string
 }
 
-export default function AccountCard({ account }: AccountCardProps) {
+export default function AccountCard({ account, userId, userEmail }: AccountCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editedAccount, setEditedAccount] = useState(account)
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showPasswordManager, setShowPasswordManager] = useState(false)
   const router = useRouter()
 
   const handleDelete = async () => {
@@ -289,6 +293,15 @@ export default function AccountCard({ account }: AccountCardProps) {
 
               <div className="flex gap-2 pt-2">
                 <button
+                  onClick={() => setShowPasswordManager(true)}
+                  className="text-sm text-violet-700 hover:text-violet-900 font-medium flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  Passwords
+                </button>
+                <button
                   onClick={() => setIsEditing(true)}
                   className="text-sm text-sage-700 hover:text-sage-900 font-medium"
                 >
@@ -304,6 +317,17 @@ export default function AccountCard({ account }: AccountCardProps) {
             </>
           )}
         </div>
+      )}
+
+      {/* Password Manager Modal */}
+      {showPasswordManager && userId && userEmail && (
+        <PasswordManager
+          accountId={account.id}
+          accountName={account.name}
+          userId={userId}
+          userEmail={userEmail}
+          onClose={() => setShowPasswordManager(false)}
+        />
       )}
 
       {/* Email Viewer Modal */}
