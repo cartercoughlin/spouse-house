@@ -118,28 +118,38 @@ export function usePasswordVault(userId: string | undefined) {
       try {
         // Check if user already has an encryption key in the database
         const keyResponse = await fetch('/api/credentials/encryption-key')
-        const keyData = await keyResponse.json()
 
         let exportedKey: string
 
-        if (keyData.hasKey && keyData.encryptionKey) {
-          // Use existing key from database
-          exportedKey = keyData.encryptionKey
-        } else {
-          // Generate a new encryption key
-          const newKey = await generateEncryptionKey()
-          exportedKey = await exportKey(newKey)
+        if (keyResponse.ok) {
+          const keyData = await keyResponse.json()
 
-          // Store the encryption key in the database
-          const storeKeyResponse = await fetch('/api/credentials/encryption-key', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ encryptionKey: exportedKey }),
-          })
+          if (keyData.hasKey && keyData.encryptionKey) {
+            // Use existing key from database
+            console.log('[setupPasskey] Using existing encryption key from database')
+            exportedKey = keyData.encryptionKey
+          } else {
+            // No key in database - generate a new one
+            console.log('[setupPasskey] No key in database, generating new one')
+            const newKey = await generateEncryptionKey()
+            exportedKey = await exportKey(newKey)
 
-          if (!storeKeyResponse.ok) {
-            throw new Error('Failed to store encryption key')
+            // Store the encryption key in the database
+            const storeKeyResponse = await fetch('/api/credentials/encryption-key', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ encryptionKey: exportedKey }),
+            })
+
+            if (!storeKeyResponse.ok) {
+              throw new Error('Failed to store encryption key')
+            }
+            console.log('[setupPasskey] New key stored in database')
           }
+        } else {
+          // API error - this is a critical failure, we should not generate a new key
+          // as it could overwrite an existing one if the table access is intermittent
+          throw new Error('Failed to check for existing encryption key')
         }
 
         // Register WebAuthn credential
@@ -160,6 +170,7 @@ export function usePasswordVault(userId: string | undefined) {
         }
 
         // Import and store the key in session for immediate use
+        console.log('[setupPasskey] Storing key in session, first 10 chars:', exportedKey.substring(0, 10))
         const key = await importKey(exportedKey)
         storeKeyInSession(exportedKey)
         setEncryptionKey(key)
@@ -211,47 +222,26 @@ export function usePasswordVault(userId: string | undefined) {
       await authenticateWithCredential(credentialIds)
 
       // After successful biometric auth, retrieve the encryption key from database
+      console.log('[unlockVault] Fetching encryption key from database...')
       const keyResponse = await fetch('/api/credentials/encryption-key')
 
-      let exportedKey: string
-
       if (!keyResponse.ok) {
-        // API error - table might not exist yet, generate and store a new key
-        console.warn('Could not fetch encryption key from database, generating new one')
-        const newKey = await generateEncryptionKey()
-        exportedKey = await exportKey(newKey)
-
-        const storeKeyResponse = await fetch('/api/credentials/encryption-key', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ encryptionKey: exportedKey }),
-        })
-
-        if (!storeKeyResponse.ok) {
-          console.error('Failed to store encryption key - database migration may be needed')
-          // Continue anyway with the generated key for this session
-        }
-      } else {
-        const keyData = await keyResponse.json()
-
-        if (!keyData.hasKey || !keyData.encryptionKey) {
-          // No key in database - generate a new one
-          const newKey = await generateEncryptionKey()
-          exportedKey = await exportKey(newKey)
-
-          const storeKeyResponse = await fetch('/api/credentials/encryption-key', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ encryptionKey: exportedKey }),
-          })
-
-          if (!storeKeyResponse.ok) {
-            throw new Error('Failed to store encryption key')
-          }
-        } else {
-          exportedKey = keyData.encryptionKey
-        }
+        console.error('[unlockVault] Failed to fetch encryption key, status:', keyResponse.status)
+        throw new Error('Failed to fetch encryption key from server')
       }
+
+      const keyData = await keyResponse.json()
+      console.log('[unlockVault] Key response - hasKey:', keyData.hasKey, 'keyLength:', keyData.encryptionKey?.length || 0)
+
+      if (!keyData.hasKey || !keyData.encryptionKey) {
+        // No key in database - user needs to set up their passkey again
+        // Do NOT generate a new key here, as that would break existing encrypted credentials
+        console.error('[unlockVault] No encryption key in database')
+        throw new Error('Encryption key not found. Please delete your passkey and set up again.')
+      }
+
+      const exportedKey = keyData.encryptionKey
+      console.log('[unlockVault] Using key from database, first 10 chars:', exportedKey.substring(0, 10))
 
       const key = await importKey(exportedKey)
       storeKeyInSession(exportedKey)
@@ -292,9 +282,17 @@ export function usePasswordVault(userId: string | undefined) {
       password: string,
       notes: string
     ): Promise<EncryptedCredentialData | null> => {
-      if (!encryptionKey) return null
+      if (!encryptionKey) {
+        console.error('[encryptCredentials] No encryption key available')
+        return null
+      }
 
       try {
+        // Log key fingerprint for debugging
+        const keyExported = await crypto.subtle.exportKey('raw', encryptionKey)
+        const keyArray = new Uint8Array(keyExported)
+        console.log('[encryptCredentials] Using key starting with bytes:', Array.from(keyArray.slice(0, 4)))
+
         const [usernameResult, passwordResult, notesResult] = await Promise.all([
           username ? encrypt(username, encryptionKey) : null,
           password ? encrypt(password, encryptionKey) : null,
@@ -304,6 +302,7 @@ export function usePasswordVault(userId: string | undefined) {
         // Use a single IV for all fields (simpler, still secure with unique ciphertext)
         const iv = usernameResult?.iv || passwordResult?.iv || notesResult?.iv || ''
 
+        console.log('[encryptCredentials] Encryption successful')
         return {
           usernameEncrypted: usernameResult?.ciphertext || null,
           passwordEncrypted: passwordResult?.ciphertext || null,
@@ -311,7 +310,7 @@ export function usePasswordVault(userId: string | undefined) {
           iv,
         }
       } catch (error) {
-        console.error('Error encrypting credentials:', error)
+        console.error('[encryptCredentials] Error:', error)
         return null
       }
     },
@@ -326,18 +325,27 @@ export function usePasswordVault(userId: string | undefined) {
       notesEncrypted: string | null,
       iv: string
     ): Promise<DecryptedCredential | null> => {
-      if (!encryptionKey) return null
+      if (!encryptionKey) {
+        console.error('[decryptCredentials] No encryption key available')
+        return null
+      }
 
       try {
+        // Log key fingerprint for debugging
+        const keyExported = await crypto.subtle.exportKey('raw', encryptionKey)
+        const keyArray = new Uint8Array(keyExported)
+        console.log('[decryptCredentials] Using key starting with bytes:', Array.from(keyArray.slice(0, 4)))
+
         const [username, password, notes] = await Promise.all([
           usernameEncrypted ? decrypt(usernameEncrypted, iv, encryptionKey) : '',
           passwordEncrypted ? decrypt(passwordEncrypted, iv, encryptionKey) : '',
           notesEncrypted ? decrypt(notesEncrypted, iv, encryptionKey) : '',
         ])
 
+        console.log('[decryptCredentials] Decryption successful')
         return { username, password, notes }
       } catch (error) {
-        console.error('Error decrypting credentials:', error)
+        console.error('[decryptCredentials] Decryption failed:', error)
         return null
       }
     },
