@@ -212,13 +212,12 @@ export function usePasswordVault(userId: string | undefined) {
 
       // After successful biometric auth, retrieve the encryption key from database
       const keyResponse = await fetch('/api/credentials/encryption-key')
-      const keyData = await keyResponse.json()
 
       let exportedKey: string
 
-      if (!keyData.hasKey || !keyData.encryptionKey) {
-        // No key in database - this happens for users who set up passkey before database storage
-        // Generate a new key and store it
+      if (!keyResponse.ok) {
+        // API error - table might not exist yet, generate and store a new key
+        console.warn('Could not fetch encryption key from database, generating new one')
         const newKey = await generateEncryptionKey()
         exportedKey = await exportKey(newKey)
 
@@ -229,10 +228,29 @@ export function usePasswordVault(userId: string | undefined) {
         })
 
         if (!storeKeyResponse.ok) {
-          throw new Error('Failed to store encryption key')
+          console.error('Failed to store encryption key - database migration may be needed')
+          // Continue anyway with the generated key for this session
         }
       } else {
-        exportedKey = keyData.encryptionKey
+        const keyData = await keyResponse.json()
+
+        if (!keyData.hasKey || !keyData.encryptionKey) {
+          // No key in database - generate a new one
+          const newKey = await generateEncryptionKey()
+          exportedKey = await exportKey(newKey)
+
+          const storeKeyResponse = await fetch('/api/credentials/encryption-key', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ encryptionKey: exportedKey }),
+          })
+
+          if (!storeKeyResponse.ok) {
+            throw new Error('Failed to store encryption key')
+          }
+        } else {
+          exportedKey = keyData.encryptionKey
+        }
       }
 
       const key = await importKey(exportedKey)
