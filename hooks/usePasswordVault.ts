@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 import {
   clearKeyFromSession,
   decrypt,
-  encrypt,
+  encryptWithIV,
   exportKey,
   generateEncryptionKey,
+  generateIV,
   getKeyFromSession,
   importKey,
   isPlatformAuthenticatorAvailable,
@@ -345,25 +346,22 @@ export function usePasswordVault(userId: string | undefined) {
       }
 
       try {
-        // Log key fingerprint for debugging
-        const keyExported = await crypto.subtle.exportKey('raw', encryptionKey)
-        const keyArray = new Uint8Array(keyExported)
-        console.log('[encryptCredentials] Using key starting with bytes:', Array.from(keyArray.slice(0, 4)))
+        // Generate a single IV for all fields
+        const iv = generateIV()
+        console.log('[encryptCredentials] Generated IV:', iv.substring(0, 10))
 
-        const [usernameResult, passwordResult, notesResult] = await Promise.all([
-          username ? encrypt(username, encryptionKey) : null,
-          password ? encrypt(password, encryptionKey) : null,
-          notes ? encrypt(notes, encryptionKey) : null,
+        // Encrypt all fields with the same IV
+        const [usernameEncrypted, passwordEncrypted, notesEncrypted] = await Promise.all([
+          username ? encryptWithIV(username, encryptionKey, iv) : null,
+          password ? encryptWithIV(password, encryptionKey, iv) : null,
+          notes ? encryptWithIV(notes, encryptionKey, iv) : null,
         ])
-
-        // Use a single IV for all fields (simpler, still secure with unique ciphertext)
-        const iv = usernameResult?.iv || passwordResult?.iv || notesResult?.iv || ''
 
         console.log('[encryptCredentials] Encryption successful')
         return {
-          usernameEncrypted: usernameResult?.ciphertext || null,
-          passwordEncrypted: passwordResult?.ciphertext || null,
-          notesEncrypted: notesResult?.ciphertext || null,
+          usernameEncrypted,
+          passwordEncrypted,
+          notesEncrypted,
           iv,
         }
       } catch (error) {

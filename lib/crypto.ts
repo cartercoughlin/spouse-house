@@ -97,8 +97,9 @@ export function generateSalt(): string {
 }
 
 // Generate random IV for each encryption
-function generateIV(): Uint8Array<ArrayBuffer> {
-  return crypto.getRandomValues(new Uint8Array(12)) as Uint8Array<ArrayBuffer>
+export function generateIV(): string {
+  const iv = crypto.getRandomValues(new Uint8Array(12)) as Uint8Array<ArrayBuffer>
+  return uint8ArrayToBase64(iv)
 }
 
 // Encrypt data with AES-GCM
@@ -108,7 +109,7 @@ export async function encrypt(
 ): Promise<{ ciphertext: string; iv: string }> {
   const encoder = new TextEncoder()
   const dataBuffer = encoder.encode(data)
-  const iv = generateIV()
+  const iv = crypto.getRandomValues(new Uint8Array(12)) as Uint8Array<ArrayBuffer>
 
   const encryptedBuffer = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
@@ -120,6 +121,25 @@ export async function encrypt(
     ciphertext: arrayBufferToBase64(encryptedBuffer),
     iv: uint8ArrayToBase64(iv),
   }
+}
+
+// Encrypt data with AES-GCM using a provided IV (for encrypting multiple fields with same IV)
+export async function encryptWithIV(
+  data: string,
+  key: CryptoKey,
+  ivBase64: string
+): Promise<string> {
+  const encoder = new TextEncoder()
+  const dataBuffer = encoder.encode(data)
+  const iv = base64ToUint8Array(ivBase64)
+
+  const encryptedBuffer = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    dataBuffer
+  )
+
+  return arrayBufferToBase64(encryptedBuffer)
 }
 
 // Decrypt data with AES-GCM
