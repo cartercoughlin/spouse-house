@@ -30,6 +30,7 @@ export default function PasswordManager({
     notes: '',
   })
   const [hasStoredCredentials, setHasStoredCredentials] = useState(false)
+  const [decryptionFailed, setDecryptionFailed] = useState(false)
 
   // Load credentials when vault is unlocked
   useEffect(() => {
@@ -42,15 +43,23 @@ export default function PasswordManager({
 
         if (data.credential) {
           setHasStoredCredentials(true)
-          const decrypted = await vault.decryptCredentials(
-            data.credential.username_encrypted,
-            data.credential.password_encrypted,
-            data.credential.notes_encrypted,
-            data.credential.iv
-          )
-          if (decrypted) {
-            setCredentials(decrypted)
-            setFormData(decrypted)
+          try {
+            const decrypted = await vault.decryptCredentials(
+              data.credential.username_encrypted,
+              data.credential.password_encrypted,
+              data.credential.notes_encrypted,
+              data.credential.iv
+            )
+            if (decrypted) {
+              setCredentials(decrypted)
+              setFormData(decrypted)
+              setDecryptionFailed(false)
+            } else {
+              setDecryptionFailed(true)
+            }
+          } catch (decryptError) {
+            console.error('Error decrypting credentials:', decryptError)
+            setDecryptionFailed(true)
           }
         } else {
           setHasStoredCredentials(false)
@@ -132,6 +141,7 @@ export default function PasswordManager({
         setCredentials(null)
         setFormData({ username: '', password: '', notes: '' })
         setHasStoredCredentials(false)
+        setDecryptionFailed(false)
         setIsEditing(true)
       }
     } catch (error) {
@@ -362,6 +372,33 @@ export default function PasswordManager({
                         Cancel
                       </button>
                     )}
+                  </div>
+                </div>
+              ) : decryptionFailed ? (
+                /* Decryption failed - show error and delete option */
+                <div className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <p className="text-amber-800 text-sm font-medium">Unable to decrypt credentials</p>
+                    <p className="text-amber-700 text-xs mt-1">
+                      The encryption key may have changed. You can delete these credentials and add new ones.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setDecryptionFailed(false)
+                        setIsEditing(true)
+                      }}
+                      className="text-sm text-sage-700 hover:text-sage-900 font-medium"
+                    >
+                      Add New
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="text-sm text-red-700 hover:text-red-900 font-medium"
+                    >
+                      Delete Existing
+                    </button>
                   </div>
                 </div>
               ) : credentials ? (

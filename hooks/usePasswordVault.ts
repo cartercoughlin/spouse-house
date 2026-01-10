@@ -16,7 +16,6 @@ import {
   authenticateWithCredential,
   getAuthenticatorDisplayName,
   registerCredential,
-  StoredCredential,
 } from '@/lib/webauthn'
 
 export interface VaultState {
@@ -39,9 +38,6 @@ export interface EncryptedCredentialData {
   notesEncrypted: string | null
   iv: string
 }
-
-// Storage key for the encryption key (wrapped/protected by WebAuthn)
-const WRAPPED_KEY_STORAGE = 'spouse_house_wrapped_key'
 
 export function usePasswordVault(userId: string | undefined) {
   const [state, setState] = useState<VaultState>({
@@ -72,7 +68,7 @@ export function usePasswordVault(userId: string | undefined) {
         const response = await fetch('/api/credentials/webauthn')
         const data = await response.json()
 
-        // Check if there's a key in session storage (already unlocked)
+        // Check if there's a key in session storage (already unlocked this session)
         const sessionKey = getKeyFromSession()
         if (sessionKey) {
           try {
@@ -120,9 +116,31 @@ export function usePasswordVault(userId: string | undefined) {
       setState((prev) => ({ ...prev, isLoading: true, error: null }))
 
       try {
-        // Generate a new encryption key
-        const newKey = await generateEncryptionKey()
-        const exportedKey = await exportKey(newKey)
+        // Check if user already has an encryption key in the database
+        const keyResponse = await fetch('/api/credentials/encryption-key')
+        const keyData = await keyResponse.json()
+
+        let exportedKey: string
+
+        if (keyData.hasKey && keyData.encryptionKey) {
+          // Use existing key from database
+          exportedKey = keyData.encryptionKey
+        } else {
+          // Generate a new encryption key
+          const newKey = await generateEncryptionKey()
+          exportedKey = await exportKey(newKey)
+
+          // Store the encryption key in the database
+          const storeKeyResponse = await fetch('/api/credentials/encryption-key', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ encryptionKey: exportedKey }),
+          })
+
+          if (!storeKeyResponse.ok) {
+            throw new Error('Failed to store encryption key')
+          }
+        }
 
         // Register WebAuthn credential
         const credential = await registerCredential({
@@ -141,13 +159,10 @@ export function usePasswordVault(userId: string | undefined) {
           throw new Error('Failed to store passkey')
         }
 
-        // Store wrapped key locally (in a real implementation, this would be encrypted)
-        // For simplicity, we store it in localStorage keyed by credential ID
-        localStorage.setItem(`${WRAPPED_KEY_STORAGE}_${credential.credentialId}`, exportedKey)
-
-        // Store the key in session for immediate use
+        // Import and store the key in session for immediate use
+        const key = await importKey(exportedKey)
         storeKeyInSession(exportedKey)
-        setEncryptionKey(newKey)
+        setEncryptionKey(key)
 
         setState((prev) => ({
           ...prev,
@@ -192,31 +207,14 @@ export function usePasswordVault(userId: string | undefined) {
 
       const credentialIds = data.credentials.map((c: { credential_id: string }) => c.credential_id)
 
-      // Authenticate with WebAuthn
-      const authResult = await authenticateWithCredential(credentialIds)
+      // Authenticate with WebAuthn (this triggers Face ID/Touch ID)
+      await authenticateWithCredential(credentialIds)
 
-      // Retrieve the wrapped key
-      const wrappedKey = localStorage.getItem(`${WRAPPED_KEY_STORAGE}_${authResult.credentialId}`)
+      // After successful biometric auth, retrieve the encryption key from database
+      const keyResponse = await fetch('/api/credentials/encryption-key')
+      const keyData = await keyResponse.json()
 
-      if (!wrappedKey) {
-        // Try to find any wrapped key (in case credential ID format changed)
-        for (const credId of credentialIds) {
-          const key = localStorage.getItem(`${WRAPPED_KEY_STORAGE}_${credId}`)
-          if (key) {
-            const importedKey = await importKey(key)
-            storeKeyInSession(key)
-            setEncryptionKey(importedKey)
-
-            setState((prev) => ({
-              ...prev,
-              isUnlocked: true,
-              isLoading: false,
-            }))
-
-            return true
-          }
-        }
-
+      if (!keyData.hasKey || !keyData.encryptionKey) {
         setState((prev) => ({
           ...prev,
           isLoading: false,
@@ -225,8 +223,8 @@ export function usePasswordVault(userId: string | undefined) {
         return false
       }
 
-      const key = await importKey(wrappedKey)
-      storeKeyInSession(wrappedKey)
+      const key = await importKey(keyData.encryptionKey)
+      storeKeyInSession(keyData.encryptionKey)
       setEncryptionKey(key)
 
       setState((prev) => ({
