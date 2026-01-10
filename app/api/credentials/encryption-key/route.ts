@@ -1,0 +1,98 @@
+import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+
+// GET - Retrieve user's encryption key
+export async function GET() {
+  try {
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: keyData, error } = await supabase
+      .from('user_encryption_keys')
+      .select('encryption_key')
+      .eq('user_id', user.id)
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching encryption key:', error)
+      return NextResponse.json({ error: 'Failed to fetch encryption key' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      encryptionKey: keyData?.encryption_key || null,
+      hasKey: !!keyData?.encryption_key
+    })
+  } catch (error) {
+    console.error('Error in GET /api/credentials/encryption-key:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// POST - Store user's encryption key
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { encryptionKey } = body
+
+    if (!encryptionKey) {
+      return NextResponse.json({ error: 'Missing encryption key' }, { status: 400 })
+    }
+
+    // Check if key already exists
+    const { data: existing } = await supabase
+      .from('user_encryption_keys')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (existing) {
+      // Update existing key
+      const { error } = await supabase
+        .from('user_encryption_keys')
+        .update({ encryption_key: encryptionKey })
+        .eq('user_id', user.id)
+
+      if (error) {
+        console.error('Error updating encryption key:', error)
+        return NextResponse.json({ error: 'Failed to update encryption key' }, { status: 500 })
+      }
+    } else {
+      // Insert new key
+      const { error } = await supabase
+        .from('user_encryption_keys')
+        .insert({
+          user_id: user.id,
+          encryption_key: encryptionKey,
+        })
+
+      if (error) {
+        console.error('Error storing encryption key:', error)
+        return NextResponse.json({ error: 'Failed to store encryption key' }, { status: 500 })
+      }
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error in POST /api/credentials/encryption-key:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
