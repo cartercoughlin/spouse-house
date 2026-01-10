@@ -214,17 +214,29 @@ export function usePasswordVault(userId: string | undefined) {
       const keyResponse = await fetch('/api/credentials/encryption-key')
       const keyData = await keyResponse.json()
 
+      let exportedKey: string
+
       if (!keyData.hasKey || !keyData.encryptionKey) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: 'Encryption key not found. You may need to set up your passkey again.',
-        }))
-        return false
+        // No key in database - this happens for users who set up passkey before database storage
+        // Generate a new key and store it
+        const newKey = await generateEncryptionKey()
+        exportedKey = await exportKey(newKey)
+
+        const storeKeyResponse = await fetch('/api/credentials/encryption-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ encryptionKey: exportedKey }),
+        })
+
+        if (!storeKeyResponse.ok) {
+          throw new Error('Failed to store encryption key')
+        }
+      } else {
+        exportedKey = keyData.encryptionKey
       }
 
-      const key = await importKey(keyData.encryptionKey)
-      storeKeyInSession(keyData.encryptionKey)
+      const key = await importKey(exportedKey)
+      storeKeyInSession(exportedKey)
       setEncryptionKey(key)
 
       setState((prev) => ({
